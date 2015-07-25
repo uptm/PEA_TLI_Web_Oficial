@@ -28,7 +28,7 @@ function scan_dummy_error_handler(error)
 
 /**
  * Performs an AJAX request and returns the parsed JSON output.
- * 
+ *
  * @param successCallback A function accepting a single object parameter, called on success
  * @param errorCallback A function accepting a single string parameter, called on failure
  */
@@ -36,23 +36,24 @@ function doScanAjax(url, successCallback, errorCallback)
 {
 	var structure =
 	{
-		method: 'get',
-		onSuccess: function(msg, responseXML)
+		method:    'get',
+		onSuccess: function (msg, responseXML)
 		{
 			stop_scan_timer();
-			
+
 			// Initialize
 			var junk = null;
 			var message = "";
 
 			// Get rid of junk before the data
 			var valid_pos = msg.indexOf('###');
-			if( valid_pos == -1 ) {
+			if (valid_pos == -1)
+			{
 				// Valid data not found in the response
 				msg = 'Invalid server response:\n' + msg;
-				if(errorCallback == null)
+				if (errorCallback == null)
 				{
-					if(admintools_scan_error_callback != null)
+					if (admintools_scan_error_callback != null)
 					{
 						admintools_scan_error_callback(msg);
 					}
@@ -62,7 +63,9 @@ function doScanAjax(url, successCallback, errorCallback)
 					errorCallback(msg);
 				}
 				return;
-			} else if( valid_pos != 0 ) {
+			}
+			else if (valid_pos != 0)
+			{
 				// Data is prefixed with junk
 				junk = msg.substr(0, valid_pos);
 				message = msg.substr(valid_pos);
@@ -77,13 +80,16 @@ function doScanAjax(url, successCallback, errorCallback)
 			var valid_pos = message.lastIndexOf('###');
 			message = message.substr(0, valid_pos); // Remove triple hash in the end
 
-			try {
+			try
+			{
 				var data = JSON.parse(message);
-			} catch(err) {
+			}
+			catch (err)
+			{
 				var msg = err.message + "\n\n" + message + "\n";
-				if(errorCallback == null)
+				if (errorCallback == null)
 				{
-					if(admintools_scan_error_callback != null)
+					if (admintools_scan_error_callback != null)
 					{
 						admintools_scan_error_callback(msg);
 					}
@@ -98,13 +104,14 @@ function doScanAjax(url, successCallback, errorCallback)
 			// Call the callback function
 			successCallback(data);
 		},
-		onFailure: function(req) {
+		onFailure: function (req)
+		{
 			stop_scan_timer();
-			
-			var message = 'Server Error:\n'+req.status+' '+req.statusText;
-			if(errorCallback == null)
+
+			var message = 'Server Error:\n' + req.status + ' ' + req.statusText;
+			if (errorCallback == null)
 			{
-				if(admintools_scan_error_callback != null)
+				if (admintools_scan_error_callback != null)
 				{
 					admintools_scan_error_callback(message);
 				}
@@ -118,16 +125,19 @@ function doScanAjax(url, successCallback, errorCallback)
 
 	var ajax_object = null;
 	start_scan_timer();
-	
+
 	// Damn you, Internet Explorer!!!
 	var randomJunk = new Date().getTime();
-	url += '&randomJunk='+randomJunk;
-	
-	if(typeof(XHR) == 'undefined') {
+	url += '&randomJunk=' + randomJunk;
+
+	if (typeof(XHR) == 'undefined')
+	{
 		structure.url = url;
 		ajax_object = new Request(structure);
 		ajax_object.send();
-	} else {
+	}
+	else
+	{
 		ajax_object = new XHR(structure);
 		ajax_object.send(url, null);
 	}
@@ -136,7 +146,8 @@ function doScanAjax(url, successCallback, errorCallback)
 function startScan()
 {
 	document.getElementById('admintools-scan-dim').style.display = 'block';
-	doScanAjax(admintools_scan_ajax_url_start, function(data){
+	doScanAjax(admintools_scan_ajax_url_start, function (data)
+	{
 		processScanStep(data);
 	})
 }
@@ -144,16 +155,23 @@ function startScan()
 function processScanStep(data)
 {
 	stop_scan_timer();
-	
-	if(data.status == false) {
+
+	if (data.status == false)
+	{
 		// handle failure
 		admintools_scan_error_callback(data.error);
-	} else {
-		if(data.done) {
+	}
+	else
+	{
+		if (data.done)
+		{
 			window.location = 'index.php?option=com_admintools&view=scans';
-		} else {
+		}
+		else
+		{
 			start_scan_timer();
-			doScanAjax(admintools_scan_ajax_url_step, function(data){
+			doScanAjax(admintools_scan_ajax_url_step, function (data)
+			{
 				processScanStep(data);
 			})
 		}
@@ -162,10 +180,11 @@ function processScanStep(data)
 
 function start_scan_timer()
 {
-	if(admintools_scan_timerid >= 0) {
+	if (admintools_scan_timerid >= 0)
+	{
 		window.clearInterval(admintools_scan_timerid);
 	}
-	
+
 	admintools_scan_responseago = 0;
 	set_scan_timermsg();
 	admintools_scan_timerid = window.setInterval('step_scan_timer()', 1000);
@@ -179,7 +198,8 @@ function step_scan_timer()
 
 function stop_scan_timer()
 {
-	if(admintools_scan_timerid >= 0) {
+	if (admintools_scan_timerid >= 0)
+	{
 		window.clearInterval(admintools_scan_timerid);
 	}
 }
@@ -187,5 +207,5 @@ function stop_scan_timer()
 function set_scan_timermsg()
 {
 	var myText = admintools_scan_msg_ago;
-	document.id('admintools-lastupdate-text').innerHTML = myText.replace('%s',admintools_scan_responseago);
+	document.id('admintools-lastupdate-text').innerHTML = myText.replace('%s', admintools_scan_responseago);
 }

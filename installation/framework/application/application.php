@@ -294,7 +294,7 @@ abstract class AApplication
 		{
 			header($moved ? 'HTTP/1.1 301 Moved Permanently' : 'HTTP/1.1 303 See other');
 			header('Location: ' . $url);
-			header('Content-Type: text/html; charset=' . $document->getCharset());
+			header('Content-Type: text/html; charset=utf-8');
 		}
 
 		$this->close();

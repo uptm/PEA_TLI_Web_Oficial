@@ -2,12 +2,12 @@
 <extension client="site" method="upgrade" type="module" version="2.5">
     <name>RokAjaxSearch</name>
     <author>RocketTheme, LLC</author>
-    <creationDate>February 17, 2014</creationDate>
+    <creationDate>May 2, 2014</creationDate>
     <authorEmail>support@rockettheme.com</authorEmail>
     <authorUrl>http://www.rockettheme.com</authorUrl>
     <copyright>(C) 2005 - 2014 RocketTheme, LLC. All rights reserved.</copyright>
     <license>http://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-    <version>2.0.2</version>
+    <version>2.0.3</version>
     <description>RokAjaxSearch is an ajaxian searcher that displays the results immediately and allows to choose the
         proper one.
     </description>

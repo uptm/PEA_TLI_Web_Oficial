@@ -10,7 +10,7 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
-class AkeebaModelFtpbrowsers extends FOFModel
+class AkeebaModelFtpbrowsers extends F0FModel
 {
 	/** @var string The FTP server hostname */
 	public $host = '';
@@ -39,7 +39,7 @@ class AkeebaModelFtpbrowsers extends FOFModel
 		// Parse directory to parts
 		$parsed_dir = trim($dir,'/');
 		$this->parts = empty($parsed_dir) ? array() : explode('/', $parsed_dir);
-		
+
 		// Find the path to the parent directory
 		if(!empty($parts)) {
 			$copy_of_parts = $parts;
@@ -96,7 +96,7 @@ class AkeebaModelFtpbrowsers extends FOFModel
 		$folders = $this->parse_rawlist($list);
 		return $folders;
 	}
-	
+
 	private function parse_rawlist($list)
 	{
 		$folders = array();
@@ -119,7 +119,7 @@ class AkeebaModelFtpbrowsers extends FOFModel
 	public function doBrowse()
 	{
 		$list = $this->getListing();
-		
+
 		$response_array = array(
 			'error'			=> $this->getError(),
 			'list'			=> $list,
@@ -127,7 +127,7 @@ class AkeebaModelFtpbrowsers extends FOFModel
 			'directory'		=> $this->directory,
 			'parent'		=> $this->parent_directory
 		);
-		
+
 		return $response_array;
 	}
 }

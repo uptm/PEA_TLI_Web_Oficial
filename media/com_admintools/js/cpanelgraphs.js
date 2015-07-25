@@ -1,16 +1,18 @@
 /**
- * @package		akeebasubs
- * @copyright	Copyright (c)2010-2014 Nicholas K. Dionysopoulos / AkeebaBackup.com
- * @license		GNU GPLv3 <http://www.gnu.org/licenses/gpl.html> or later
+ * @package        akeebasubs
+ * @copyright    Copyright (c)2010-2014 Nicholas K. Dionysopoulos / AkeebaBackup.com
+ * @license        GNU GPLv3 <http://www.gnu.org/licenses/gpl.html> or later
  */
 
 /**
  * Setup (required for Joomla! 3)
  */
-if(typeof(akeeba) == 'undefined') {
+if (typeof(akeeba) == 'undefined')
+{
 	var akeeba = {};
 }
-if(typeof(akeeba.jQuery) == 'undefined') {
+if (typeof(akeeba.jQuery) == 'undefined')
+{
 	akeeba.jQuery = jQuery.noConflict();
 }
 
@@ -28,46 +30,51 @@ function admintools_cpanel_graphs_load()
 {
 	// Get the From date
 	admintools_cpanel_graph_from = document.getElementById('admintools_graph_datepicker').value;
-	
+
 	// Calculate the To date
 	var thatDay = new Date(admintools_cpanel_graph_from);
-	thatDay = new Date(thatDay.getTime() + 30*86400000);
-	admintools_cpanel_graph_to = thatDay.getUTCFullYear()+'-'+(thatDay.getUTCMonth()+1)+'-'+thatDay.getUTCDate();
-	
+	thatDay = new Date(thatDay.getTime() + 30 * 86400000);
+	admintools_cpanel_graph_to = thatDay.getUTCFullYear() + '-' + (thatDay.getUTCMonth() + 1) + '-' + thatDay.getUTCDate();
+
 	// Clear the data arrays
 	admintools_cpanel_graph_exceptPoints = [];
 	admintools_cpanel_graph_subsPoints = [];
 	admintools_cpanel_graph_typePoints = [];
 
 	// Remove the charts and show the spinners
-	(function($) {
+	(function ($)
+	{
 		$('#aklevelschart').empty();
 		$('#aklevelschart').hide();
 		admintools_cpanel_graph_plot2 = null;
 		$('#aksaleschart').empty();
 		$('#aksaleschart').hide();
 		admintools_cpanel_graph_plot1 = null;
-		
+
 		$('#akthrobber').show();
 		$('#akthrobber2').show();
 	})(akeeba.jQuery);
-	
+
 	admintools_load_exceptions();
 }
 
 function admintools_load_exceptions()
 {
-	(function($) {
-		var url = "index.php?option=com_admintools&view=logs&datefrom="+admintools_cpanel_graph_from+"&dateto="+admintools_cpanel_graph_to+"&groupbydate=1&savestate=0&format=json&limit=0&limitstart=0";
-		$.getJSON(url, function(data){
-			$.each(data, function(index, item){
+	(function ($)
+	{
+		var url = "index.php?option=com_admintools&view=logs&datefrom=" + admintools_cpanel_graph_from + "&dateto=" + admintools_cpanel_graph_to + "&groupbydate=1&savestate=0&format=json&limit=0&limitstart=0";
+		$.getJSON(url, function (data)
+		{
+			$.each(data, function (index, item)
+			{
 				admintools_cpanel_graph_exceptPoints.push([item.date, parseInt(item.exceptions * 100) * 1 / 100]);
 				//admintools_cpanel_graph_subsPoints.push([item.date, item.exceptions * 1]);
 				admintools_cpanel_graph_subsPoints.push([]);
 			});
 			$('#akthrobber').hide();
 			$('#aksaleschart').show();
-			if(admintools_cpanel_graph_exceptPoints.length == 0) {
+			if (admintools_cpanel_graph_exceptPoints.length == 0)
+			{
 				$('#aksaleschart-nodata').show();
 				return;
 			}
@@ -79,15 +86,19 @@ function admintools_load_exceptions()
 
 function admintools_load_types()
 {
-	(function($) {
-		var url = "index.php?option=com_admintools&view=logs&datefrom="+admintools_cpanel_graph_from+"&dateto="+admintools_cpanel_graph_to+"&groupbydate=0&groupbytype=1&savestate=0&format=json&limit=0&limitstart=0";
-		$.getJSON(url, function(data){
-			$.each(data, function(index, item){
+	(function ($)
+	{
+		var url = "index.php?option=com_admintools&view=logs&datefrom=" + admintools_cpanel_graph_from + "&dateto=" + admintools_cpanel_graph_to + "&groupbydate=0&groupbytype=1&savestate=0&format=json&limit=0&limitstart=0";
+		$.getJSON(url, function (data)
+		{
+			$.each(data, function (index, item)
+			{
 				admintools_cpanel_graph_typePoints.push([item.reason, parseInt(item.exceptions * 100) * 1 / 100]);
 			});
 			$('#akthrobber2').hide();
 			$('#aklevelschart').show();
-			if(admintools_cpanel_graph_typePoints.length == 0) {
+			if (admintools_cpanel_graph_typePoints.length == 0)
+			{
 				$('#aklevelschart-nodata').show();
 				return;
 			}
@@ -98,65 +109,69 @@ function admintools_load_types()
 
 function admintools_render_exceptions()
 {
-	(function($) {
+	(function ($)
+	{
 		$.jqplot.config.enablePlugins = true;
-		admintools_cpanel_graph_plot1 = $.jqplot('aksaleschart', [admintools_cpanel_graph_subsPoints, admintools_cpanel_graph_exceptPoints], {
-			show: true,
-			axes:{
-				xaxis:{renderer:$.jqplot.DateAxisRenderer,tickInterval:'1 week'},
-				yaxis:{min: 0,tickOptions:{formatString:'%.2f'}},
-				y2axis:{min: 0,tickOptions:{formatString:'%u'}}
+		admintools_cpanel_graph_plot1 = $.jqplot('aksaleschart', [
+			admintools_cpanel_graph_subsPoints, admintools_cpanel_graph_exceptPoints
+		], {
+			show:         true,
+			axes:         {
+				xaxis:  {renderer: $.jqplot.DateAxisRenderer, tickInterval: '1 week'},
+				yaxis:  {min: 0, tickOptions: {formatString: '%.2f'}},
+				y2axis: {min: 0, tickOptions: {formatString: '%u'}}
 			},
-			series:[ 
+			series:       [
 				{
-					yaxis: 'y2axis',
-					lineWidth:1,
-					renderer:$.jqplot.BarRenderer,
-					rendererOptions:{barPadding: 0, barMargin: 0, barWidth: 5, shadowDepth: 0, varyBarColor: 0},
-					markerOptions: {
-						style:'none'
+					yaxis:           'y2axis',
+					lineWidth:       1,
+					renderer:        $.jqplot.BarRenderer,
+					rendererOptions: {barPadding: 0, barMargin: 0, barWidth: 5, shadowDepth: 0, varyBarColor: 0},
+					markerOptions:   {
+						style: 'none'
 					},
-					color: '#aae0aa'
+					color:           '#aae0aa'
 				},
 				{
-					lineWidth:3,
-					markerOptions:{
-						style:'filledCircle',
-						size:8
+					lineWidth:       3,
+					markerOptions:   {
+						style: 'filledCircle',
+						size:  8
 					},
-					renderer: $.jqplot.hermiteSplineRenderer,
-					rendererOptions:{steps: 60, tension: 0.6}
+					renderer:        $.jqplot.hermiteSplineRenderer,
+					rendererOptions: {steps: 60, tension: 0.6}
 				}
 			],
-			highlighter: {
-				show: true,
+			highlighter:  {
+				show:       true,
 				sizeAdjust: 7.5
 			},
-			axesDefaults:{useSeriesColor: true}
+			axesDefaults: {useSeriesColor: true}
 		}).replot();
 	})(akeeba.jQuery);
 }
 
 function admintools_render_types()
 {
-	(function($) {
+	(function ($)
+	{
 		$.jqplot.config.enablePlugins = true;
 		admintools_cpanel_graph_plot2 = $.jqplot('aklevelschart', [admintools_cpanel_graph_typePoints], {
-			show: true,
-			highlighter: {
+			show:           true,
+			highlighter:    {
 				show: false
 			},
 			seriesDefaults: {
-				renderer: jQuery.jqplot.PieRenderer, 
+				renderer:        jQuery.jqplot.PieRenderer,
 				rendererOptions: {
 					showDataLabels: true,
-					dataLabels: 'value'
+					dataLabels:     'value'
 				},
-				markerOptions: {
-					style:'none'
+				markerOptions:   {
+					style: 'none'
 				}
 			},
-			legend: {show:true, location: 'e'}
+			legend:         {show: true, location: 'e'}
 		}).replot();
 	})(akeeba.jQuery);
 }

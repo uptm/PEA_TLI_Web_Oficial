@@ -25,7 +25,7 @@ $token = JFactory::getSession()->getFormToken();
 	<input type="hidden" name="boxchecked" id="boxchecked" value="0" />
 	<input type="hidden" name="task" id="task" value="" />
 	<input type="hidden" name="<?php echo JFactory::getSession()->getFormToken()?>" value="1" />
-	
+
 	<div class="alert alert-info">
 		<strong><?php echo JText::_('CPANEL_PROFILE_TITLE'); ?></strong>:
 		#<?php echo $this->profileid; ?> <?php echo $this->profilename; ?>
@@ -61,7 +61,7 @@ $token = JFactory::getSession()->getFormToken();
 		$id = JHTML::_('grid.id', ++$i, $profile->id);
 		$link = 'index.php?option=com_akeeba&amp;view=profiles&amp;task=edit&amp;id='.$profile->id;
 		$i = 1 - $i;
-		$exportBaseName = FOFStringUtils::toSlug($profile->description);
+		$exportBaseName = F0FStringUtils::toSlug($profile->description);
 		?>
 			<tr class="row<?php echo $i; ?>">
 				<td><?php echo $id; ?></td>

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version   $Id: RokSprocket_Layout_Strips.php 11547 2013-06-18 20:17:15Z btowles $
+ * @version   $Id: RokSprocket_Layout_Strips.php 21881 2014-07-09 22:43:31Z kevin $
  * @author    RocketTheme http://www.rockettheme.com
  * @copyright Copyright (C) 2007 - 2014 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
@@ -106,9 +106,10 @@ class RokSprocket_Layout_Strips extends RokSprocket_AbstractLayout
 	 */
 	public function renderInstanceHeaders()
 	{
-		RokCommon_Header::addScript($this->theme_context->getUrl('strips.js'));
-		RokCommon_Header::addScript($this->theme_context->getUrl('strips-speeds.js'));
-		RokCommon_Header::addStyle($this->theme_context->getUrl('strips.css'));
+		$filename = ($this->theme == 'default' ? 'strips' : $this->theme);
+		RokCommon_Header::addStyle($this->theme_context->getUrl($filename . '.css'));
+		RokCommon_Header::addScript($this->theme_context->getUrl($filename . '.js'));
+		RokCommon_Header::addScript($this->theme_context->getUrl($filename . '-speeds.js'));
 
 		$id                  = $this->parameters->get('module_id');
 		$settings            = new stdClass();
@@ -132,8 +133,11 @@ class RokSprocket_Layout_Strips extends RokSprocket_AbstractLayout
 		if (!self::$instanceHeadersRendered) {
 
 			$root_assets = RokCommon_Composite::get($this->basePackage . '.assets.js');
+			$layout_assets = RokCommon_Composite::get($this->layoutPackage . '.assets.js');
 			RokCommon_Header::addScript($root_assets->getUrl('moofx.js'));
 			RokCommon_Header::addScript($root_assets->getUrl('roksprocket.request.js'));
+			RokCommon_Header::addScript($layout_assets->getUrl('strips.js'));
+			RokCommon_Header::addScript($layout_assets->getUrl('strips-speeds.js'));
 
 			$instance   = array();
 			$instance[] = "window.addEvent('domready', function(){";

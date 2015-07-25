@@ -19,26 +19,32 @@ $icons_root = JURI::base().'components/com_akeeba/assets/images/';
 JHTML::_('behavior.framework');
 JHtml::_('behavior.modal');
 
-$script = <<<ENDSCRIPT
-window.addEvent( 'domready' ,  function() {
-    $('btnchangelog').addEvent('click', showChangelog);
-});
+$script = <<<JS
 
-function showChangelog()
-{
-	var akeebaChangelogElement = $('akeeba-changelog').clone();
+;// This comment is intentionally put here to prevent badly written plugins from causing a Javascript error
+// due to missing trailing semicolon and/or newline in their code.
+(function($){
+	$(document).ready(function(){
+		$('#btnchangelog').click(showChangelog);
+	});
 
-    SqueezeBox.fromElement(
-        akeebaChangelogElement, {
-            handler: 'adopt',
-            size: {
-                x: 550,
-                y: 500
-            }
-        }
-    );
-}
-ENDSCRIPT;
+	function showChangelog()
+	{
+		var akeebaChangelogElement = $('#akeeba-changelog').clone().appendTo('body').attr('id', 'akeeba-changelog-clone');
+
+		SqueezeBox.fromElement(
+			document.getElementById('akeeba-changelog-clone'), {
+				handler: 'adopt',
+				size: {
+					x: 550,
+					y: 500
+				}
+			}
+		);
+	}
+})(akeeba.jQuery);
+
+JS;
 JFactory::getDocument()->addScriptDeclaration($script,'text/javascript');
 
 ?>
@@ -115,6 +121,23 @@ JFactory::getDocument()->addScriptDeclaration($script,'text/javascript');
 <?php elseif ($this->needscoredlidwarning): ?>
 <div class="alert alert-danger">
 	<?php echo JText::sprintf('COM_AKEEBA_LBL_CPANEL_NEEDSUPGRADE','https://www.akeebabackup.com/videos/63-video-tutorials/1505-abt03-upgrade-core-to-pro.html'); ?>
+</div>
+<?php endif; ?>
+
+<div id="updateNotice"></div>
+
+<?php if($this->hasPostInstallationMessages): ?>
+<div class="alert alert-info">
+	<h3>
+		<?php echo JText::_('AKEEBA_CPANEL_PIM_TITLE'); ?>
+	</h3>
+	<p>
+		<?php echo JText::_('AKEEBA_CPANEL_PIM_DESC'); ?>
+	</p>
+	<a href="index.php?option=com_postinstall&eid=<?php echo $this->extension_id?>"
+		class="btn btn-primary btn-large">
+		<?php echo JText::_('AKEEBA_CPANEL_PIM_BUTTON'); ?>
+	</a>
 </div>
 <?php endif; ?>
 
@@ -228,13 +251,13 @@ JFactory::getDocument()->addScriptDeclaration($script,'text/javascript');
 			<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 				<input type="hidden" name="cmd" value="_s-xclick" />
 				<input type="hidden" name="hosted_button_id" value="10903325" />
-				<a href="#" id="btnchangelog" class="btn btn-info">CHANGELOG</a>
-				<input type="submit" class="btn btn-inverse" value="Donate via PayPal" />
+				<a href="#" id="btnchangelog" class="btn btn-info btn-small">CHANGELOG</a>
+				<input type="submit" class="btn btn-inverse btn-small" value="Donate via PayPal" />
 				<!--<input class="btn" type="image" src="https://www.paypal.com/en_GB/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online." style="border: none !important; width: 92px; height 26px;" />-->
 				<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
 			</form>
 			<?php else: ?>
-			<a href="#" id="btnchangelog" class="btn btn-info btn-mini">CHANGELOG</a>
+			<a href="#" id="btnchangelog" class="btn btn-info btn-small">CHANGELOG</a>
 			<?php endif; ?>
 			<div style="display:none;">
 				<div id="akeeba-changelog">
@@ -246,6 +269,9 @@ JFactory::getDocument()->addScriptDeclaration($script,'text/javascript');
 			</div>
 			<!-- CHANGELOG :: END -->
 
+			<a href="index.php?option=com_akeeba&view=update&task=force" class="btn btn-inverse btn-small">
+				<?php echo JText::_('COM_AKEEBA_CPANEL_MSG_RELOADUPDATE'); ?>
+			</a>
 		</div>
 
 		<h3><?php echo JText::_('BACKUP_STATS') ?></h3>
@@ -269,3 +295,30 @@ JFactory::getDocument()->addScriptDeclaration($script,'text/javascript');
 		</p>
 	</div>
 </div>
+
+<?php
+if($this->statsIframe)
+{
+    echo $this->statsIframe;
+}
+?>
+
+<script type="text/javascript">
+	(function($) {
+		$(document).ready(function(){
+			$.ajax('index.php?option=com_akeeba&view=cpanel&task=updateinfo&tmpl=component', {
+				success: function(msg, textStatus, jqXHR)
+				{
+					// Get rid of junk before and after data
+					var match = msg.match(/###([\s\S]*?)###/);
+					data = match[1];
+
+					if (data.length)
+					{
+						$('#updateNotice').html(data);
+					}
+				}
+			})
+		});
+	})(akeeba.jQuery);
+</script>

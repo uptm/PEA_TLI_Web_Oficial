@@ -113,8 +113,10 @@ class AEUtilDavclient {
             $this->authType = self::AUTH_BASIC | self::AUTH_DIGEST;
         }
 
-        // Mhm... it seems unused in this class
-        $this->propertyMap['{DAV:}resourcetype'] = 'Sabre\\DAV\\Property\\ResourceType';
+        // We just need this class to unserialize a node collection. However in our case we really don't need it
+        // since we are just checking if exists or not, we don't have to iterate on it, so we can use a (very)
+        // simplified method just to avoid PHP warnings
+        $this->propertyMap['{DAV:}resourcetype'] = 'AEUtilXML';
     }
 
     /**
@@ -342,7 +344,11 @@ class AEUtilDavclient {
     {
         $this->headers = '';
 
+        AEUtilLogger::WriteLog(_AE_LOG_DEBUG, "Remote relative WebDav URL: ".$url);
+
         $url = $this->getAbsoluteUrl($url);
+
+        AEUtilLogger::WriteLog(_AE_LOG_DEBUG, "Absolute WebDav URL: ".$url);
 
         $curlSettings = array(
             CURLOPT_RETURNTRANSFER  => true,
@@ -468,6 +474,8 @@ class AEUtilDavclient {
                     throw new Exception('Conflict', 409);
                 case 412 :
                     throw new Exception('Precondition failed', 412);
+                case 413 :
+                    throw new Exception('Request Entity Too Large', 413);
                 case 416 :
                     throw new Exception('Requested Range Not Satisfiable', 416);
                 case 500 :
@@ -571,24 +579,14 @@ class AEUtilDavclient {
      */
     protected function getAbsoluteUrl($url)
     {
-
         // If the url starts with http:// or https://, the url is already absolute.
         if (preg_match('/^http(s?):\/\//', $url))
         {
             return $url;
         }
 
-        // If the url starts with a slash, we must calculate the url based off
-        // the root of the base url.
-        if (strpos($url,'/') === 0)
-        {
-            $parts = parse_url($this->baseUri);
-            return $parts['scheme'] . '://' . $parts['host'] . (isset($parts['port'])?':' . $parts['port']:'') . $parts['path'] . $url;
-        }
-
-        // Otherwise...
-        return $this->baseUri . $url;
-
+		$parts = parse_url($this->baseUri);
+		return $parts['scheme'] . '://' . $parts['host'] . (isset($parts['port'])?':' . $parts['port']:'') . $parts['path'] . '/' . ltrim($url, '/');
     }
 
     /**

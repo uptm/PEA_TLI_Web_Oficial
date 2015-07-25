@@ -13,33 +13,8 @@ defined('_JEXEC') or die();
  * The Control Panel model
  *
  */
-class AkeebaModelCpanels extends FOFModel
+class AkeebaModelCpanels extends F0FModel
 {
-	/** @var string The root of the database installation files */
-	private $dbFilesRoot = '/components/com_akeeba/sql/';
-
-	/** @var array If any of these tables is missing we run the install SQL file and ignore the $dbChecks array */
-	private $dbBaseCheck = array(
-		'tables' => array(
-			'ak_profiles', 'ak_stats',
-			'ak_storage',
-		),
-		'file' => 'install/mysql/install.sql'
-	);
-
-	/** @var array Database update checks */
-	private $dbChecks = array(
-		/**
-		array(
-			'table' => 'ak_something',
-			'field' => 'some_field',
-			'files' =>array(
-				'updates/mysql/x.y.z-2013-01-01.sql',
-			)
-		),
-		**/
-	);
-
 	/**
 	 * Get an array of icon definitions for the Control Panel
 	 *
@@ -300,7 +275,7 @@ class AkeebaModelCpanels extends FOFModel
 		$key = AEUtilSecuresettings::getKey();
 
 		// Loop all profiles and decrypt their settings
-		$profilesModel = FOFModel::getTmpInstance('Profiles','AkeebaModel');
+		$profilesModel = F0FModel::getTmpInstance('Profiles','AkeebaModel');
 		$profiles = $profilesModel->getList(true);
 		$db = $this->getDBO();
 		foreach($profiles as $profile)
@@ -325,7 +300,7 @@ class AkeebaModelCpanels extends FOFModel
 		if(empty($key) || ($key==false)) return;
 
 		// Loop all profiles and encrypt their settings
-		$profilesModel = FOFModel::getTmpInstance('Profiles','AkeebaModel');
+		$profilesModel = F0FModel::getTmpInstance('Profiles','AkeebaModel');
 		$profiles = $profilesModel->getList(true);
 		$db = $this->getDBO();
 		if(!empty($profiles)) foreach($profiles as $profile)
@@ -449,119 +424,6 @@ class AkeebaModelCpanels extends FOFModel
 	}
 
 	/**
-	 * Refreshes the Joomla! update sites for this extension as needed
-	 *
-	 * @return  void
-	 */
-	public function refreshUpdateSite()
-	{
-		$isPro = defined('AKEEBA_PRO') ? AKEEBA_PRO : 0;
-		JLoader::import('joomla.application.component.helper');
-		$dlid = AEUtilComconfig::getValue('update_dlid', '');
-		$extra_query = null;
-
-		// If I have a valid Download ID I will need to use a non-blank extra_query in Joomla! 3.2+
-		if (preg_match('/^([0-9]{1,}:)?[0-9a-f]{32}$/i', $dlid))
-		{
-			// Even if the user entered a Download ID in the Core version. Let's switch his update channel to Professional
-			$isPro = true;
-
-			$extra_query = 'dlid=' . $dlid;
-		}
-
-		// Create the update site definition we want to store to the database
-		$update_site = array(
-			'name'		=> 'Akeeba Backup ' . ($isPro ? 'Professional' : 'Core'),
-			'type'		=> 'extension',
-			'location'	=> 'http://cdn.akeebabackup.com/updates/ab' . ($isPro ? 'pro' : 'core') . '.xml',
-			'enabled'	=> 1,
-			'last_check_timestamp'	=> 0,
-			'extra_query'	=> $extra_query
-		);
-
-		if (version_compare(JVERSION, '3.0.0', 'lt'))
-		{
-			unset($update_site['extra_query']);
-		}
-
-		$db = $this->getDbo();
-
-		// Get the extension ID to ourselves
-		$query = $db->getQuery(true)
-			->select($db->qn('extension_id'))
-			->from($db->qn('#__extensions'))
-			->where($db->qn('type') . ' = ' . $db->q('component'))
-			->where($db->qn('element') . ' = ' . $db->q('com_akeeba'));
-		$db->setQuery($query);
-
-		$extension_id = $db->loadResult();
-
-		if (empty($extension_id))
-		{
-			return;
-		}
-
-		// Get the update sites for our extension
-		$query = $db->getQuery(true)
-			->select($db->qn('update_site_id'))
-			->from($db->qn('#__update_sites_extensions'))
-			->where($db->qn('extension_id') . ' = ' . $db->q($extension_id));
-		$db->setQuery($query);
-
-		$updateSiteIDs = $db->loadColumn(0);
-
-		if (!count($updateSiteIDs))
-		{
-			// No update sites defined. Create a new one.
-			$newSite = (object)$update_site;
-			$db->insertObject('#__update_sites', $newSite);
-
-			$id = $db->insertid();
-
-			$updateSiteExtension = (object)array(
-				'update_site_id'	=> $id,
-				'extension_id'		=> $extension_id,
-			);
-			$db->insertObject('#__update_sites_extensions', $updateSiteExtension);
-		}
-		else
-		{
-			// Loop through all update sites
-			foreach ($updateSiteIDs as $id)
-			{
-				$query = $db->getQuery(true)
-					->select('*')
-					->from($db->qn('#__update_sites'))
-					->where($db->qn('update_site_id') . ' = ' . $db->q($id));
-				$db->setQuery($query);
-				$aSite = $db->loadObject();
-
-				// Does the name and location match?
-				if (($aSite->name == $update_site['name']) && ($aSite->location == $update_site['location']))
-				{
-					// Do we have the extra_query property (J 3.2+) and does it match?
-					if (property_exists($aSite, 'extra_query'))
-					{
-						if ($aSite->extra_query == $update_site['extra_query'])
-						{
-							continue;
-						}
-					}
-					else
-					{
-						// Joomla! 3.1 or earlier. Updates may or may not work.
-						continue;
-					}
-				}
-
-				$update_site['update_site_id'] = $id;
-				$newSite = (object)$update_site;
-				$db->updateObject('#__update_sites', $newSite, 'update_site_id', true);
-			}
-		}
-	}
-
-	/**
 	 * Checks if the download ID provisioning plugin for the updates of this extension is published. If not, it will try
 	 * to publish it automatically. It reports the status of the plugin as a boolean.
 	 *
@@ -623,6 +485,9 @@ class AkeebaModelCpanels extends FOFModel
 			$result = false;
 		}
 
+		// Reset the plugins cache
+		F0FUtilsCacheCleaner::clearPluginsCache();
+
 		return $result;
 	}
 
@@ -634,83 +499,71 @@ class AkeebaModelCpanels extends FOFModel
 	 */
 	public function checkAndFixDatabase()
 	{
-		$db = $this->getDbo();
-
-		// Initialise
-		$tableFields = array();
-		$sqlFiles = array();
-
-		// Get a listing of database tables known to Joomla!
-		$allTables = $db->getTableList();
-		$dbprefix = JFactory::getConfig()->get('dbprefix', '');
-
-		// Perform the base check. If any of these tables is missing we have to run the installation SQL file
-		if(!empty($this->dbBaseCheck)) {
-			foreach($this->dbBaseCheck['tables'] as $table)
-			{
-				$tableName = $dbprefix . $table;
-				$check = in_array($tableName, $allTables);
-				if (!$check) break;
-			}
-
-			if (!$check)
-			{
-				$sqlFiles[] = JPATH_ADMINISTRATOR . $this->dbFilesRoot . $this->dbBaseCheck['file'];
-			}
-		}
-
-		// If the base check was successful and we have further database checks run them
-		if (empty($sqlFiles) && !empty($this->dbChecks)) foreach($this->dbChecks as $dbCheck)
-		{
-			// Always check that the table exists
-			$tableName = $dbprefix . $dbCheck['table'];
-			$check = in_array($tableName, $allTables);
-
-			// If the table exists and we have a field, check that the field exists too
-			if (!empty($dbCheck['field']) && $check)
-			{
-				if (!array_key_exists($tableName, $tableFields))
-				{
-					$tableFields[$tableName] = $db->getTableColumns('#__' . $dbCheck['table'], true);
-				}
-
-				if (is_array($tableFields[$tableName]))
-				{
-					$check = array_key_exists($dbCheck['field'], $tableFields[$tableName]);
-				}
-				else
-				{
-					$check = false;
-				}
-			}
-
-			// Something's missing. Add the file to the list of SQL files to run
-			if (!$check)
-			{
-				foreach ($dbCheck['files'] as $file)
-				{
-					$sqlFiles[] = JPATH_ADMINISTRATOR . $this->dbFilesRoot . $file;
-				}
-			}
-		}
-
-		// If we have SQL files to run, well, RUN THEM!
-		if (!empty($sqlFiles))
-		{
-			JLoader::import('joomla.filesystem.file');
-			foreach($sqlFiles as $file)
-			{
-				$sql = JFile::read($file);
-				if($sql) {
-					$commands = explode(';', $sql);
-					foreach($commands as $query) {
-						$db->setQuery($query);
-						$db->execute();
-					}
-				}
-			}
-		}
+		// Install or update database
+		$dbInstaller = new F0FDatabaseInstaller(array(
+			'dbinstaller_directory'	=> JPATH_ADMINISTRATOR . '/components/com_akeeba/sql/xml'
+		));
+		$dbInstaller->updateSchema();
 
 		return $this;
+	}
+
+	/**
+	 * Returns true if we are installed in Joomla! 3.2 or later and we have post-installation messages for our component
+	 * which must be showed to the user.
+	 *
+	 * @return bool
+	 */
+	public function hasPostInstallMessages()
+	{
+		// Make sure we have Joomla! 3.2.0 or later
+		if (!version_compare(JVERSION, '3.2.0', 'ge'))
+		{
+			return false;
+		}
+
+		// Get the extension ID
+		// Get the extension ID for our component
+		$db = JFactory::getDbo();
+		$query = $db->getQuery(true);
+		$query->select('extension_id')
+			->from('#__extensions')
+			->where($db->qn('element') . ' = ' . $db->q('com_akeeba'));
+		$db->setQuery($query);
+
+		try
+		{
+			$ids = $db->loadColumn();
+		}
+		catch (Exception $exc)
+		{
+			return false;
+		}
+
+		if (empty($ids))
+		{
+			return false;
+		}
+
+		$extension_id = array_shift($ids);
+
+		$this->setState('extension_id', $extension_id);
+
+		if (!defined('FOF_INCLUDED'))
+		{
+			include_once JPATH_SITE.'/libraries/fof/include.php';
+		}
+
+		if (!defined('FOF_INCLUDED'))
+		{
+			return false;
+		}
+
+		// Do I have messages?
+		$pimModel = FOFModel::getTmpInstance('Messages', 'PostinstallModel');
+		$pimModel->savestate(false);
+		$pimModel->setState('eid', $extension_id);
+
+		return (count($pimModel->getList()) >= 1);
 	}
 }

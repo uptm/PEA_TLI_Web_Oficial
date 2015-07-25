@@ -1,15 +1,15 @@
 <?php
 /**
- *  @package AdminTools
- *  @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
- *  @license GNU General Public License version 3, or later
- *  @version $Id$
+ * @package   AdminTools
+ * @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
+ * @license   GNU General Public License version 3, or later
+ * @version   $Id$
  */
 
 // Protect from unauthorized access
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
-class AdmintoolsViewAdminuser extends FOFViewHtml
+class AdmintoolsViewAdminuser extends F0FViewHtml
 {
 	private function randomFalseUsername()
 	{
@@ -18,32 +18,29 @@ class AdmintoolsViewAdminuser extends FOFViewHtml
 			'brain', 'beavis', 'tux', 'larry', 'stevenseagal',
 			'jeanclaudevandamme', 'jackiechan'
 		);
-		
+
 		$id = 42;
-		
+
 		$dontadd = JFactory::getUser($id)->username;
-		
+
 		$ret = $dontadd;
-		
-		while($ret == $dontadd) {
+
+		while ($ret == $dontadd)
+		{
 			$rand = rand(0, count($usernames) - 1);
 			$ret = $usernames[$rand];
 		}
-		
+
 		return $ret;
 	}
-	
+
 	protected function onBrowse($tpl = null)
 	{
 		$model = $this->getModel();
-		$this->assign('hasDefaultAdmin',		$model->hasDefaultAdmin());
-		$this->assign('getDefaultUsername',		$model->getDefaultUsername());
-		$this->assign('fakeUsername',			$this->randomFalseUsername());
-		
-		if(version_compare(JVERSION, '3.0', 'ge')) {
-			JHTML::_('behavior.framework');
-		} else {
-			JHTML::_('behavior.mootools');
-		}
+		$this->hasDefaultAdmin = $model->hasDefaultAdmin();
+		$this->getDefaultUsername = $model->getDefaultUsername();
+		$this->fakeUsername = $this->randomFalseUsername();
+
+		JHTML::_('behavior.framework', true);
 	}
 }

@@ -10,7 +10,7 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
-class AkeebaModelLights extends FOFModel
+class AkeebaModelLights extends F0FModel
 {
 	/**
 	 * Returns a list of all configured profiles

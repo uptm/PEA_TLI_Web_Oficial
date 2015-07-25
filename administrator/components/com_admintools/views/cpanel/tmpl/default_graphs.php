@@ -1,29 +1,25 @@
 <?php
 /**
- *  @package AdminTools
- *  @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
- *  @license GNU General Public License version 3, or later
+ * @package   AdminTools
+ * @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
+ * @license   GNU General Public License version 3, or later
  */
 
 // Protect from unauthorized access
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
-FOFTemplateUtils::addCSS('media://com_admintools/css/jquery.jqplot.min.css?'.ADMINTOOLS_VERSION);
+F0FTemplateUtils::addCSS('media://com_admintools/css/jquery.jqplot.min.css?' . ADMINTOOLS_VERSION);
 
-AkeebaStrapper::addJSfile('media://com_admintools/js/excanvas.min.js?'.ADMINTOOLS_VERSION);
-AkeebaStrapper::addJSfile('media://com_admintools/js/jquery.jqplot.min.js?'.ADMINTOOLS_VERSION);
-AkeebaStrapper::addJSfile('media://com_admintools/js/jqplot.highlighter.min.js?'.ADMINTOOLS_VERSION);
-AkeebaStrapper::addJSfile('media://com_admintools/js/jqplot.dateAxisRenderer.min.js?'.ADMINTOOLS_VERSION);
-AkeebaStrapper::addJSfile('media://com_admintools/js/jqplot.barRenderer.min.js?'.ADMINTOOLS_VERSION);
-AkeebaStrapper::addJSfile('media://com_admintools/js/jqplot.pieRenderer.min.js?'.ADMINTOOLS_VERSION);
-AkeebaStrapper::addJSfile('media://com_admintools/js/jqplot.hermite.js?'.ADMINTOOLS_VERSION);
-AkeebaStrapper::addJSfile('media://com_admintools/js/cpanelgraphs.js?'.ADMINTOOLS_VERSION);
+AkeebaStrapper::addJSfile('media://com_admintools/js/excanvas.min.js?' . ADMINTOOLS_VERSION);
+AkeebaStrapper::addJSfile('media://com_admintools/js/jquery.jqplot.min.js?' . ADMINTOOLS_VERSION);
+AkeebaStrapper::addJSfile('media://com_admintools/js/jqplot.highlighter.min.js?' . ADMINTOOLS_VERSION);
+AkeebaStrapper::addJSfile('media://com_admintools/js/jqplot.dateAxisRenderer.min.js?' . ADMINTOOLS_VERSION);
+AkeebaStrapper::addJSfile('media://com_admintools/js/jqplot.barRenderer.min.js?' . ADMINTOOLS_VERSION);
+AkeebaStrapper::addJSfile('media://com_admintools/js/jqplot.pieRenderer.min.js?' . ADMINTOOLS_VERSION);
+AkeebaStrapper::addJSfile('media://com_admintools/js/jqplot.hermite.js?' . ADMINTOOLS_VERSION);
+AkeebaStrapper::addJSfile('media://com_admintools/js/cpanelgraphs.js?' . ADMINTOOLS_VERSION);
 
-if(version_compare(JVERSION, '3.0', 'ge')) {
-	JHTML::_('behavior.framework');
-} else {
-	JHTML::_('behavior.mootools');
-}
+JHTML::_('behavior.framework', true);
 
 $graphDayFrom = gmdate('Y-m-d', time() - 30 * 24 * 3600);
 ?>
@@ -37,9 +33,10 @@ $graphDayFrom = gmdate('Y-m-d', time() - 30 * 24 * 3600);
 	</button>
 </p>
 <div id="aksaleschart">
-	<img src="<?php echo FOFTemplateUtils::parsePath('media://com_admintools/images/throbber.gif')?>" id="akthrobber" />
+	<img src="<?php echo F0FTemplateUtils::parsePath('media://com_admintools/images/throbber.gif') ?>" id="akthrobber"/>
+
 	<p id="aksaleschart-nodata" style="display:none">
-		<?php echo JText::_('COM_ADMINTOOLS_DASHBOARD_STATS_NODATA')?>
+		<?php echo JText::_('COM_ADMINTOOLS_DASHBOARD_STATS_NODATA') ?>
 	</p>
 </div>
 
@@ -47,23 +44,28 @@ $graphDayFrom = gmdate('Y-m-d', time() - 30 * 24 * 3600);
 
 <h3><?php echo JText::_('COM_ADMINTOOLS_DASHBOARD_EXCEPTSTATS') ?></h3>
 <div id="aklevelschart">
-	<img src="<?php echo FOFTemplateUtils::parsePath('media://com_admintools/images/throbber.gif')?>" id="akthrobber2" />
+	<img src="<?php echo F0FTemplateUtils::parsePath('media://com_admintools/images/throbber.gif') ?>"
+		 id="akthrobber2"/>
+
 	<p id="aklevelschart-nodata" style="display:none">
-		<?php echo JText::_('COM_ADMINTOOLS_DASHBOARD_STATS_NODATA')?>
+		<?php echo JText::_('COM_ADMINTOOLS_DASHBOARD_STATS_NODATA') ?>
 	</p>
 </div>
 
 <script type="text/javascript">
 
-admintools_cpanel_graph_from = "<?php echo $graphDayFrom ?>";
+	admintools_cpanel_graph_from = "<?php echo $graphDayFrom ?>";
 
-(function($) {
-	$(document).ready(function(){
-		admintools_cpanel_graphs_load();
-
-		$('#admintools_graph_reload').click(function(e){
+	(function ($)
+	{
+		$(document).ready(function ()
+		{
 			admintools_cpanel_graphs_load();
-		})
-	});
-})(akeeba.jQuery);
+
+			$('#admintools_graph_reload').click(function (e)
+			{
+				admintools_cpanel_graphs_load();
+			})
+		});
+	})(akeeba.jQuery);
 </script>

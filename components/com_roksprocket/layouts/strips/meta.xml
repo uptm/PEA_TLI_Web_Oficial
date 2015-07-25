@@ -21,6 +21,18 @@
 					<parameter key="displayname">Default</parameter>
 					<parameter key="basefile">index.php</parameter>
 				</parameter>
+				<parameter key="separated" type="collection">
+					<parameter key="displayname">Separated</parameter>
+					<parameter key="basefile">index.php</parameter>
+				</parameter>
+				<parameter key="parallel" type="collection">
+					<parameter key="displayname">Parallel</parameter>
+					<parameter key="basefile">index.php</parameter>
+				</parameter>
+				<parameter key="cards" type="collection">
+					<parameter key="displayname">Cards</parameter>
+					<parameter key="basefile">index.php</parameter>
+				</parameter>
 			</parameter>
 		</parameter>
 	</parameters>

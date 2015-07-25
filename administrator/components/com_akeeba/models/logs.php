@@ -14,7 +14,7 @@ defined('_JEXEC') or die();
  * The Control Panel model
  *
  */
-class AkeebaModelLogs extends FOFModel
+class AkeebaModelLogs extends F0FModel
 {
 	function getLogFiles()
 	{
@@ -46,19 +46,27 @@ class AkeebaModelLogs extends FOFModel
 		if(!empty($list))
 		{
 			$options[] = JHTML::_('select.option',null,JText::_('LOG_CHOOSE_FILE_VALUE'));
+
 			foreach($list as $item)
 			{
 				$text = JText::_('STATS_LABEL_ORIGIN_'.strtoupper($item));
+
+				if (strstr($item, '.') !== false)
+				{
+					list($origin, $backupId) = explode('.', $item, 2);
+					$text = JText::_('STATS_LABEL_ORIGIN_'.strtoupper($origin)) . ' (' . $backupId . ')';
+				}
+
 				$options[] = JHTML::_('select.option',$item,$text);
 			}
 		}
 		return $options;
 	}
-	
+
 	public function echoRawLog()
 	{
 		$tag = $this->getState('tag', '');
-		
+
 		echo "WARNING: Do not copy and paste lines from this file!\r\n";
 		echo "You are supposed to ZIP and attach it in your support forum post.\r\n";
 		echo "If you fail to do so, your support request will receive minimal priority.\r\n";

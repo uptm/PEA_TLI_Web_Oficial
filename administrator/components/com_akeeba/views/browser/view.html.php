@@ -9,12 +9,12 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
-class AkeebaViewBrowser extends FOFViewHtml
+class AkeebaViewBrowser extends F0FViewHtml
 {
 	public function onAdd($tpl = null)
 	{
 		$model = $this->getModel();
-		
+
 		$this->folder =					$model->getState('folder');
 		$this->folder_raw =				$model->getState('folder_raw');
 		$this->parent =					$model->getState('parent');
@@ -24,7 +24,7 @@ class AkeebaViewBrowser extends FOFViewHtml
 		$this->writable =				$model->getState('writable');
 		$this->subfolders =				$model->getState('subfolders');
 		$this->breadcrumbs =			$model->getState('breadcrumbs');
-		
+
 		return true;
 	}
 }

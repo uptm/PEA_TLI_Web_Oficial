@@ -14,7 +14,7 @@ defined('_JEXEC') or die();
  * used for all requirements of backup statistics in JP
  *
  */
-class AkeebaModelStatistics extends FOFModel
+class AkeebaModelStatistics extends F0FModel
 {
 	/** @var JPagination The JPagination object, used in the GUI */
 	private $_pagination;
@@ -48,7 +48,7 @@ class AkeebaModelStatistics extends FOFModel
 		// Set the page pagination variables
 		$this->setState('limit',$limit);
 		$this->setState('limitstart',$limitstart);
-		
+
 		$this->table = 'stat';
 	}
 
@@ -98,25 +98,25 @@ class AkeebaModelStatistics extends FOFModel
 					if($stat['meta'] == 'ok')
 					{
 						if($stat['total_size']) {
-							$total_size = $stat['total_size']; 
+							$total_size = $stat['total_size'];
 						} else {
 							$total_size = 0;
 							foreach($archives as $filename)
 							{
 								$total_size += @filesize($filename);
-							}				
+							}
 						}
-						
+
 					}
 					else
 					{
 						if($stat['total_size']) {
-							$total_size = $stat['total_size']; 
+							$total_size = $stat['total_size'];
 						}
 						if($stat['filesexist']) {
 							$updateNonExistent[] = $stat['id'];
 						}
-						
+
 						// If there is a "remote_filename", the record is "remote", not "obsolete"
 						if($stat['remote_filename']) {
 							$stat['meta'] = 'remote';
@@ -203,7 +203,7 @@ class AkeebaModelStatistics extends FOFModel
 				$status = JText::_('STATS_LABEL_STATUS_OK');
 				$statusClass="label-success";
 				break;
-			
+
 			default:
 				$status = '';
 				$statusClass='';
@@ -401,7 +401,7 @@ ENDBODY;
 		$db = $this->getDBO();
 
 		$id = $this->getState('id', 0);
-		
+
 		if( (!is_numeric($id)) || ($id <= 0) )
 		{
 			$this->setError(JText::_('STATS_ERROR_INVALIDID'));
@@ -425,29 +425,77 @@ ENDBODY;
 	 */
 	public function deleteFile()
 	{
-		$db = $this->getDBO();
+		JLoader::import('joomla.filesystem.file');
 
 		$id = $this->getState('id', 0);
-		
+
 		if( (!is_numeric($id)) || ($id <= 0) )
 		{
 			$this->setError(JText::_('STATS_ERROR_INVALIDID'));
 			return false;
 		}
 
+		// Get the backup statistics record and the files to delete
 		$stat = AEPlatform::getInstance()->get_statistics($id);
 		$allFiles = AEUtilStatistics::get_all_filenames($stat, false);
-		$aeconfig = AEFactory::getConfiguration();
+
+		// Remove the custom log file if necessary
+		$this->_deleteLogs($stat);
+
+		// No files? Nothing to do.
+		if (empty($allFiles))
+		{
+			return true;
+		}
 
 		$status = true;
-		JLoader::import('joomla.filesystem.file');
+
 		foreach($allFiles as $filename)
 		{
-			$new_status = JFile::delete($filename);
+			if (!@file_exists($filename))
+			{
+				continue;
+			}
+
+			$new_status = @unlink($filename);
+
+			if (!$new_status)
+			{
+				$new_status = JFile::delete($filename);
+			}
+
 			$status = $status ? $new_status : false;
 		}
 
 		return $status;
+	}
+
+	/**
+	 * Deletes the backup-specific log files of a stats record
+	 *
+	 * @param   array   $stat  The array holding the backup stats record
+	 *
+	 * @return  void
+	 */
+	protected function _deleteLogs(array $stat)
+	{
+		// We can't delete logs if there is no backup ID in the record
+		if (!isset($stat['backupid']) || empty($stat['backupid']))
+		{
+			return;
+		}
+
+		$logFileName = 'akeeba.' . $stat['tag'] . '.' . $stat['backupid'] . '.log';
+
+		$logPath = dirname($stat['absolute_path']) . '/' . $logFileName;
+
+		if (@file_exists($logPath))
+		{
+			if (!@unlink($logPath))
+			{
+				JFile::delete($logPath);
+			}
+		}
 	}
 
 	/**

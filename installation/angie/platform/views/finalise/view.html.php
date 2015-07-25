@@ -33,6 +33,14 @@ ENDSRIPT
 			$this->configuration = AModel::getAnInstance('Configuration', 'AngieModel')->getFileContents();
 		}
 
+        if(ASession::getInstance()->get('tfa_warning', false))
+        {
+            $this->extra_warning  = '<div class="alert alert-block alert-error">';
+            $this->extra_warning .=     '<h4 class="alert-heading">'.AText::_('FINALISE_TFA_DISABLED_TITLE').'</h4>';
+            $this->extra_warning .=     '<p>'.AText::_('FINALISE_TFA_DISABLED_BODY').'</p>';
+            $this->extra_warning .= '</div>';
+        }
+
 		return true;
 	}
 }

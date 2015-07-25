@@ -9,7 +9,7 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
-class AkeebaToolbar extends FOFToolbar
+class AkeebaToolbar extends F0FToolbar
 {
 	/**
 	 * Disable rendering a toolbar.

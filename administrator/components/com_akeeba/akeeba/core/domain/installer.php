@@ -188,10 +188,10 @@ ENDHTML;
 		$phpversion = PHP_VERSION;
 		$ret = <<<ENDINI
 ; Akeeba Backup $abversion - Extra information used during restoration
-host=$host
-backup_date=$backupdate
-akeeba_version=$abversion
-php_version=$phpversion
+host="$host"
+backup_date="$backupdate"
+akeeba_version="$abversion"
+php_version="$phpversion"
 ENDINI;
 
 		return $ret;

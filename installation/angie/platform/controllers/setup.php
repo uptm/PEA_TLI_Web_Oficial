@@ -12,6 +12,7 @@ class AngieControllerSetup extends AController
 {
 	public function apply()
 	{
+        /** @var AngieModelSetup $model */
 		$model = $this->getThisModel();
 		try
 		{

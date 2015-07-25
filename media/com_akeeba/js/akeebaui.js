@@ -24,8 +24,14 @@ var akeeba_ui_theme_root = "";
 /** @var The AJAX proxy URL */
 var akeeba_ajax_url = "";
 
+/** @var The log viewer URL */
+var akeeba_logview_url = "";
+
 /** @var Current backup job's tag */
 var akeeba_backup_tag = 'backend';
+
+/** @var Current backup job's unique ID */
+var akeeba_backup_id = null;
 
 /** @var The callback function to call on error */
 var akeeba_error_callback = dummy_error_handler;
@@ -38,6 +44,20 @@ var akeeba_is_stw = false;
 
 /** @var System restore point setup information */
 var akeeba_srp_info = {};
+
+/** @var Should I auto resume backups with AJAX errors? */
+var akeeba_autoresume_enabled = true;
+
+/** @var Tiemout before automatically resuming the backup after an error */
+var akeeba_autoresume_timeout = 10;
+
+/** @var Maximum auto-resume attempts */
+var akeeba_autoresume_maxretries = 3;
+
+/** @var Current auto-retry attempt */
+var akeeba_autoresume_try = 0;
+
+var akeeba_config_passwordfields = {};
 
 /** @var The translation strings used in the GUI */
 var akeeba_translations = new Array();
@@ -135,15 +155,15 @@ function cbIframeCall()
 			iframeDoc = akeeba_iframe.contentWindow.document; // IE on Windows
 		}
 		var msg = iframeDoc.body.innerHTML;
-		
+
 		// Dispose of the iframe
 		$(akeeba_iframe).remove();
 		akeeba_iframe = null;
-		
+
 		// Start processing the message
 		var junk = null;
 		var message = "";
-		
+
 		// Get rid of junk before the data
 		var valid_pos = msg.indexOf('###');
 		if( valid_pos == -1 ) {
@@ -171,11 +191,11 @@ function cbIframeCall()
 			message = msg;
 		}
 		message = message.substr(3); // Remove triple hash in the beginning
-		
+
 		// Get of rid of junk after the data
 		var valid_pos = message.lastIndexOf('###');
 		message = message.substr(0, valid_pos); // Remove triple hash in the end
-		
+
 		try {
 			var data = JSON.parse(message);
 		} catch(err) {
@@ -193,9 +213,9 @@ function cbIframeCall()
 			}
 			return;
 		}
-		
+
 		// Call the callback function
-		akeeba_iframecb_success(data);		
+		akeeba_iframecb_success(data);
 	})(akeeba.jQuery);
 }
 
@@ -213,16 +233,13 @@ function doAjax(data, successCallback, errorCallback, useCaching, timeout)
 		doIframeCall(data, successCallback, errorCallback)
 		return;
 	}
-	
+
 	if(useCaching == null) useCaching = true;
-	
+
 	if(!useCaching) {
-		var now = new Date().getTime() / 1000;
-		var s = parseInt(now, 10);
-		var microtime = Math.round((now - s) * 1000) / 1000;
-		data._utterUselessCrapRequiredByStupidBrowsersToStopCachingXHR = microtime;
+		data.xhrcachebust = new Date().getTime();
 	}
-	
+
 	if(timeout == null) timeout = 600000;
 	(function($) {
 		var structure =
@@ -236,10 +253,11 @@ function doAjax(data, successCallback, errorCallback, useCaching, timeout)
 				// Initialize
 				var junk = null;
 				var message = "";
-				
+
 				// Get rid of junk before the data
 				var valid_pos = msg.indexOf('###');
 				if( valid_pos == -1 ) {
+					msg = sanitize_error_message(msg);
 					// Valid data not found in the response
 					msg = 'Invalid AJAX data: ' + msg;
 					if(errorCallback == null)
@@ -264,14 +282,15 @@ function doAjax(data, successCallback, errorCallback, useCaching, timeout)
 					message = msg;
 				}
 				message = message.substr(3); // Remove triple hash in the beginning
-				
+
 				// Get of rid of junk after the data
 				var valid_pos = message.lastIndexOf('###');
 				message = message.substr(0, valid_pos); // Remove triple hash in the end
-				
+
 				try {
 					var data = JSON.parse(message);
 				} catch(err) {
+					message = sanitize_error_message(message);
 					var msg = err.message + "\n<br/>\n<pre>\n" + message + "\n</pre>";
 					if(errorCallback == null)
 					{
@@ -286,7 +305,7 @@ function doAjax(data, successCallback, errorCallback, useCaching, timeout)
 					}
 					return;
 				}
-				
+
 				// Call the callback function
 				successCallback(data);
 			},
@@ -294,7 +313,7 @@ function doAjax(data, successCallback, errorCallback, useCaching, timeout)
 				var message = '<strong>AJAX Loading Error</strong><br/>HTTP Status: '+Request.status+' ('+Request.statusText+')<br/>';
 				message = message + 'Internal status: '+textStatus+'<br/>';
 				message = message + 'XHR ReadyState: ' + Request.readyState + '<br/>';
-				message = message + 'Raw server response:<br/>'+Request.responseText;
+				message = message + 'Raw server response:<br/>' + sanitize_error_message(Request.responseText);
 
 				if(errorCallback == null)
 				{
@@ -318,6 +337,26 @@ function doAjax(data, successCallback, errorCallback, useCaching, timeout)
 			$.ajax( structure );
 		}
 	})(akeeba.jQuery);
+}
+
+/**
+ * Sanitize a message before displaying it in an error dialog. Some servers return an HTML page with DOM modifying
+ * JavaScript when they block the backup script for any reason (usually with a 5xx HTTP error code). Displaying the
+ * raw response in the error dialog has the side-effect of killing our backup resumption JavaScript or even completely
+ * destroy the page, making backup restart impossible.
+ *
+ * @param {string} msg The message to sanitize
+ *
+ * @returns {string}
+ */
+function sanitize_error_message(msg)
+{
+	if (msg.indexOf("<script") > -1)
+	{
+		msg = "(HTML containing script tags)";
+	}
+
+	return msg;
 }
 
 //=============================================================================
@@ -368,16 +407,16 @@ function parse_config_gui_data(data, rootnode)
 			// The default root node is the form itself
 			rootnode = $('#akeebagui');
 		}
-		
+
 		// Begin by slashing contents of the akeebagui DIV
 		rootnode.empty();
-		
+
 		// This is the workhorse, looping through groupdefs and creating HTML elements
 		var group_id = 0;
 		$.each(data,function(headertext, groupdef) {
 			// Loop for each group definition
 			group_id++;
-			
+
 			// Create a fieldset container
 			var container = $( document.createElement('div') );
 			container
@@ -389,18 +428,18 @@ function parse_config_gui_data(data, rootnode)
 			header.attr('id', 'auigrp_'+rootnode.attr('id')+'_'+group_id);
 			header.html(headertext);
 			header.appendTo(container);
-			
+
 			// Loop each element
 			$.each(groupdef, function(config_key, defdata){
 				// Parameter ID
 				var current_id = 'var['+config_key+']';
-				
+
 				if( (defdata['type'] != 'hidden') && (defdata['type'] != 'none') )
 				{
 					// Option row DIV
 					var row_div = $(document.createElement('div')).addClass('akeeba-ui-optionrow control-group');
 					row_div.appendTo(container);
-					
+
 					// Create label
 					var label = $(document.createElement('label'));
 					label.addClass('control-label')
@@ -416,10 +455,10 @@ function parse_config_gui_data(data, rootnode)
 					if(defdata['bold']) label.css('font-weight','bold');
 					label.appendTo( row_div );
 				}
-				
+
 				// Create GUI representation based on type
 				var controlWrapper = $(document.createElement('div')).addClass('controls');
-				
+
 				switch( defdata['type'] )
 				{
 					// A do-not-display field
@@ -437,7 +476,7 @@ function parse_config_gui_data(data, rootnode)
 						});
 						hiddenfield.appendTo( container );
 						break;
-						
+
 					// A separator
 					case 'separator':
 						var separator = $(document.createElement('div')).addClass('akeeba_ui_separator');
@@ -459,7 +498,7 @@ function parse_config_gui_data(data, rootnode)
 							value:		defdata['default']
 						});
 						hiddenfield.appendTo( span );
-						
+
 						var myLabel = '';
 						if(defdata['default'] == '') {
 							myLabel = defdata['labelempty'];
@@ -473,7 +512,7 @@ function parse_config_gui_data(data, rootnode)
 							.data('labelempty',defdata['labelempty'])
 							.data('labelnotempty', defdata['labelnotempty']);
 						break;
-				
+
 					// An installer selection
 					case 'installer':
 						// Create the select element
@@ -490,8 +529,8 @@ function parse_config_gui_data(data, rootnode)
 						editor.appendTo( controlWrapper );
 						controlWrapper.appendTo( row_div );
 
-						break;				
-				
+						break;
+
 					// An engine selection
 					case 'engine':
 						var engine_type = defdata['subtype'];
@@ -503,7 +542,7 @@ function parse_config_gui_data(data, rootnode)
 						})
 							.addClass('ui-helper-hidden well')
 							.appendTo( controlWrapper );
-						
+
 						// Create the select element
 						var editor = $(document.createElement('select')).attr({
 							id:			current_id,
@@ -559,7 +598,7 @@ function parse_config_gui_data(data, rootnode)
 								}
 							});
 						});
-						
+
 						// Add a configuration show/hide button
 						var button = $(document.createElement('button'))
 							.html(akeeba_translations['UI-CONFIG'])
@@ -571,15 +610,15 @@ function parse_config_gui_data(data, rootnode)
 							engine_config_container.toggleClass('ui-helper-hidden');
 							e.preventDefault();
 						});
-						
+
 						var spacerSpan = $(document.createElement('span')).html('&nbsp;');
 
 						button.prependTo( controlWrapper );
 						spacerSpan.prependTo( controlWrapper );
 						editor.prependTo( controlWrapper );
-						
+
 						controlWrapper.appendTo( row_div );
-						
+
 						// Populate config container with the default engine data
 						if(akeeba_engines[engine_type][defdata['default']] != null)
 						{
@@ -589,7 +628,7 @@ function parse_config_gui_data(data, rootnode)
 							var new_data = new Object;
 							var engine_params = enginedef.parameters;
 							new_data[enginetitle] = engine_params;
-							
+
 							// Is it a protected field?
 							if(defdata['protected'] != 0) {
 								var titleSpan = $(document.createElement('span'))
@@ -597,17 +636,17 @@ function parse_config_gui_data(data, rootnode)
 								titleSpan.prependTo(span);
 								editor.css('display','none');
 							}
-							
+
 							parse_config_gui_data(new_data, engine_config_container);
 							$(engine_config_container)
 							.find('legend:first')
 							.after(
 								$(document.createElement('p'))
 								.html(enginedef.information.description)
-							);							
+							);
 						}
 						break;
-					
+
 					// A text box with an option to launch a browser
 					case 'browsedir':
 						var editor = $(document.createElement('input')).attr({
@@ -622,7 +661,7 @@ function parse_config_gui_data(data, rootnode)
 							.attr('title',akeeba_translations['UI-BROWSE'])
 							.html('&nbsp;')
 							.addClass('btn');
-							
+
 						var icon = $(document.createElement('i'))
 							.addClass('icon-folder-open')
 							.prependTo(button);
@@ -631,21 +670,21 @@ function parse_config_gui_data(data, rootnode)
 							event.preventDefault();
 							if( akeeba_browser_hook != null ) akeeba_browser_hook( editor.val(), editor );
 						});
-						
+
 						var span = $(document.createElement('span')).addClass('input-append');
-						
+
 						editor.appendTo( span );
 						button.appendTo( span );
-						
+
 						span.appendTo( controlWrapper )
-						
+
 						controlWrapper.appendTo( row_div );
 						break;
-						
+
 					// A text box with a button
 					case 'buttonedit':
 						var editortype = defdata['editortype'] == 'hidden' ? 'hidden' : 'text';
-						
+
 						var editor = $(document.createElement('input')).attr({
 							type:		editortype,
 							id:			current_id,
@@ -656,7 +695,7 @@ function parse_config_gui_data(data, rootnode)
 						if(defdata['editordisabled'] == '1') {
 							editor.attr('disabled', 'disabled');
 						}
-						
+
 						//var button = $(document.createElement('button')).addClass('ui-state-default').html(akeeba_translations[defdata['buttontitle']]);
 						var button = $(document.createElement('button'))
 							.html(akeeba_translations[defdata['buttontitle']])
@@ -668,15 +707,15 @@ function parse_config_gui_data(data, rootnode)
 								eval(hook+'()');
 							} catch(err) {}
 						});
-						
+
 						var span = $(document.createElement('span')).addClass('input-append');
 						editor.appendTo( span );
 						button.appendTo( span );
-						
+
 						span.appendTo( controlWrapper );
 						controlWrapper.appendTo( row_div );
-						break;						
-						
+						break;
+
 					// A drop-down list
 					case 'enum':
 						var editor = $(document.createElement('select')).attr({
@@ -686,18 +725,18 @@ function parse_config_gui_data(data, rootnode)
 						// Create and append options
 						var enumvalues = defdata['enumvalues'].split("|");
 						var enumkeys = defdata['enumkeys'].split("|");
-						
+
 						$.each(enumvalues, function(counter, value){
 							var item_description = enumkeys[counter];
 							var option = $(document.createElement('option')).attr('value', value).html(item_description);
 							if(value == defdata['default']) option.attr('selected',1);
 							option.appendTo( editor );
 						});
-						
+
 						editor.appendTo( controlWrapper );
 						controlWrapper.appendTo( row_div );
 						break;
-						
+
 					// A simple single-line, unvalidated text box
 					case 'string':
 						var editor = $(document.createElement('input')).attr({
@@ -713,6 +752,8 @@ function parse_config_gui_data(data, rootnode)
 
 					// A simple single-line, unvalidated password box
 					case 'password':
+						akeeba_config_passwordfields[current_id] = defdata['default'];
+
 						var editor = $(document.createElement('input')).attr({
 							type:			'password',
 							id:				current_id,
@@ -797,7 +838,7 @@ function parse_config_gui_data(data, rootnode)
 						var uom = defdata['uom'];
 						if( (typeof(uom) != 'string') || empty(uom) ) {
 							uom = '';
-							
+
 							dropdown.appendTo(controlWrapper);
 							custom.appendTo(controlWrapper);
 						} else {
@@ -813,14 +854,14 @@ function parse_config_gui_data(data, rootnode)
 							label.appendTo(inputAppendWrapper);
 							inputAppendWrapper.appendTo(controlWrapper);
 						}
-						
+
 
 						hidden_input.appendTo(controlWrapper);
-						
+
 						controlWrapper.appendTo( row_div );
-						
+
 						break;
-					
+
 					// A toggle button
 					case 'bool':
 						var wrap_div = $(document.createElement('div')).addClass('akeeba-ui-checkbox');
@@ -843,7 +884,7 @@ function parse_config_gui_data(data, rootnode)
 						wrap_div.appendTo( controlWrapper );
 						controlWrapper.appendTo( row_div );
 						break;
-						
+
 					// Button with a custom hook function
 					case 'button':
 						// Create the button
@@ -862,7 +903,7 @@ function parse_config_gui_data(data, rootnode)
 						editor.appendTo( controlWrapper );
 						controlWrapper.appendTo( row_div );
 						break;
-					
+
 					// An extension is being used
 					default:
 						var method = 'akeeba_render_'+defdata['type'];
@@ -870,7 +911,7 @@ function parse_config_gui_data(data, rootnode)
 						fn(config_key, defdata, label, row_div);
 				}
 			});
-			
+
 		});
 	})(akeeba.jQuery);
 }
@@ -879,20 +920,30 @@ function parse_config_gui_data(data, rootnode)
 //Akeeba Backup -- Backup Now page
 //=============================================================================
 
-function set_ajax_timer()
+function set_ajax_timer(waitTime)
 {
-	setTimeout('akeeba_ajax_timer_tick()', 10);
+	if (waitTime <= 0)
+	{
+		waitTime = 10;
+	}
+
+	setTimeout('akeeba_ajax_timer_tick()', waitTime);
 }
 
 function akeeba_ajax_timer_tick()
 {
+	// Reset the timer
+	reset_timeout_bar();
+	start_timeout_bar(akeeba_max_execution_time, akeeba_time_bias);
+
 	(function($){
 		doAjax({
 			// Data to send to AJAX
 			'ajax'	: 'step',
-			'tag'	: akeeba_backup_tag
+			'tag'	: akeeba_backup_tag,
+			'backupid' : akeeba_backup_id
 		}, backup_step, backup_error, false );
-	})(akeeba.jQuery);	
+	})(akeeba.jQuery);
 }
 
 function start_timeout_bar(max_allowance, bias)
@@ -904,7 +955,7 @@ function start_timeout_bar(max_allowance, bias)
 			var lastText = akeeba_translations['UI-LASTRESPONSE'].replace('%s', lastResponseSeconds.toFixed(0));
 			$('#response-timer div.text').html(lastText);
 		});
-		
+
 	})(akeeba.jQuery);
 }
 
@@ -925,12 +976,37 @@ function reset_timeout_bar()
 	})(akeeba.jQuery);
 }
 
+function start_retry_timeout()
+{
+	(function($) {
+		var remainingSeconds = akeeba_autoresume_timeout;
+		$('#akeeba-retry-timeout').everyTime(1000, 'retryTimeout', function() {
+			remainingSeconds--;
+			$('#akeeba-retry-timeout').html(remainingSeconds.toFixed(0));
+
+			if (remainingSeconds == 0)
+			{
+				$('#akeeba-retry-timeout').stopTime();
+				akeeba_resume_backup();
+			}
+		});
+	})(akeeba.jQuery);
+}
+
+function reset_retry_timeout()
+{
+	(function($){
+		$('#akeeba-retry-timeout').stopTime();
+		$('#akeeba-retry-timeout').html(akeeba_autoresume_timeout.toFixed(0));
+	})(akeeba.jQuery);
+}
+
 function render_backup_steps(active_step)
 {
 	(function($){
 		var normal_class = 'label-success';
 		if( active_step == '' ) normal_class = '';
-	
+
 		$('#backup-steps').html('');
 		$.each(akeeba_domains, function(counter, element){
 			var step = $(document.createElement('div'))
@@ -938,7 +1014,7 @@ function render_backup_steps(active_step)
 				.html(element[1])
 				.data('domain',element[0])
 				.appendTo('#backup-steps');
-	
+
 			if(step.data('domain') == active_step )
 			{
 				normal_class = '';
@@ -949,7 +1025,7 @@ function render_backup_steps(active_step)
 				this_class = normal_class;
 			}
 			step.addClass(this_class);
-		});			
+		});
 	})(akeeba.jQuery);
 }
 
@@ -961,7 +1037,7 @@ function backup_start()
 			var r = confirm('You are running AVG Antivirus with Link Scanner enabled. This is known to cause backup issues. Please disable the Link Scanner feature if you run into any problems.\n\nAre you sure you want to continue despite that warning?');
 			if(!r) return;
 		}
-		
+
 		// Save the editor contents
 		try {
 			if( akeeba_comment_editor_save != null ) akeeba_comment_editor_save();
@@ -986,24 +1062,41 @@ function backup_start()
 		$('#backup-setup').hide("fast");
 		// Show the backup progress
 		$('#backup-progress-pane').show("fast");
+
+        // Let's check if we have a password even if we didn't set it in the profile (maybe a password manager filled it?)
+        if ((angiekey) && (config_angie_key == ''))
+        {
+            $('#angie-password-warning').show();
+        }
+
+		// Initialise Piecon
+		Piecon.setOptions({
+			color: '#333333',
+			background: '#e0e0e0',
+			shadow: '#000000',
+			fallback: 'force'
+		});
+
 		// Initialize steps
 		render_backup_steps('');
 		// Start the response timer
 		start_timeout_bar(akeeba_max_execution_time, akeeba_time_bias);
 		// Perform Ajax request
+		akeeba_backup_id = null;
 		akeeba_backup_tag = akeeba_srp_info.tag;
-                
-                var ajax_request = {
-                    // Data to send to AJAX
-                    'ajax': 'start',
-                    description: $('#backup-description').val(),
-                    comment: $('#comment').val(),
-                    jpskey: jpskey,
-                    angiekey: angiekey
-                };
-                
-                ajax_request = array_merge(ajax_request, akeeba_srp_info);
-                
+
+		var ajax_request = {
+			// Data to send to AJAX
+			'ajax': 'start',
+			description: $('#backup-description').val(),
+			comment: $('#comment').val(),
+			jpskey: jpskey,
+			angiekey: angiekey,
+			tag: akeeba_backup_tag
+		};
+
+		ajax_request = array_merge(ajax_request, akeeba_srp_info);
+
 		doAjax(ajax_request, backup_step, backup_error, false );
 	})(akeeba.jQuery);
 }
@@ -1015,9 +1108,8 @@ function backup_step(data)
 		console.log(data);
 	} catch(e) {
 	}
-	
+
 	// Update visual step progress from active domain data
-	reset_timeout_bar();
 	render_backup_steps(data.Domain);
 	(function($){
 		// Update percentage display
@@ -1026,7 +1118,16 @@ function backup_step(data)
 		$('#backup-percentage div.bar').css({
 			'width':			data.Progress+'%'
 		});
-		
+
+		if (data.Progress >= 100)
+		{
+			Piecon.setProgress(99);
+		}
+		else
+		{
+			Piecon.setProgress(data.Progress);
+		}
+
 		// Update step/substep display
 		$('#backup-step').html(data.Step);
 		$('#backup-substep').html(data.Substep);
@@ -1058,17 +1159,32 @@ function backup_step(data)
 			if(data["HasRun"] == 1)
 			{
 				// Yes. Show backup completion page.
+				try {
+					Piecon.reset();
+				} catch (e) {}
 				backup_complete();
 			}
 			else
 			{
-				// No. Set the backup tag
-				akeeba_backup_tag = akeeba_backup_tag;
+				// No. Reset the backup retries.
+				akeeba_autoresume_try = 0;
+
+				// Set the backup ID
+				akeeba_backup_id = data.backupid;
 				if(empty(akeeba_backup_tag)) akeeba_backup_tag = 'backend';
-				// Start the response timer...
-				start_timeout_bar(akeeba_max_execution_time, akeeba_time_bias);
-				// ...and send an AJAX command
-				set_ajax_timer();
+
+				// Reset the retries
+				akeeba_autoresume_try = 0;
+
+				// How much time do I have to wait?
+				var waitTime = 10;
+				if (data.hasOwnProperty('sleepTime'))
+				{
+					waitTime = data.sleepTime;
+				}
+
+				// Send an AJAX command
+				set_ajax_timer(waitTime);
 			}
 		}
 	})(akeeba.jQuery);
@@ -1077,11 +1193,90 @@ function backup_step(data)
 function backup_error(message)
 {
 	(function($){
+		// If resume is not enabled, die.
+		if (!akeeba_autoresume_enabled)
+		{
+			backup_die(message);
+		}
+
+		// If we are past the max retries, die.
+		if (akeeba_autoresume_try >= akeeba_autoresume_maxretries)
+		{
+			backup_die(message);
+			return;
+		}
+
 		// Make sure the timer is stopped
-		reset_timeout_bar();
+		akeeba_autoresume_try++;
+		reset_retry_timeout();
+
 		// Hide progress and warnings
 		$('#backup-progress-pane').hide("fast");
 		$('#backup-warnings-panel').hide("fast");
+		$('#error-panel').hide("fast");
+
+		// Setup and show the retry pane
+		$('#backup-error-message-retry').html(message);
+		$('#retry-panel').show("fast");
+
+		// Start the countdown
+		start_retry_timeout();
+	})(akeeba.jQuery);
+}
+
+function akeeba_cancel_resume_backup()
+{
+	(function($){
+		// Make sure the timer is stopped
+		reset_retry_timeout();
+
+		// Kill the backup
+		var errorMessage = $('#backup-error-message-retry').html();
+		backup_die(errorMessage);
+	})(akeeba.jQuery);
+}
+
+function akeeba_resume_backup()
+{
+	(function($){
+		// Make sure the timer is stopped
+		reset_retry_timeout();
+
+		// Hide error and retry panels
+		$('#error-panel').hide("fast");
+		$('#retry-panel').hide("fast");
+
+		// Show progress and warnings
+		$('#backup-progress-pane').show("fast");
+		if ($('#warnings-list').html())
+		{
+			$('#backup-warnings-panel').show("fast");
+		}
+
+		// Restart the backup
+		set_ajax_timer();
+	})(akeeba.jQuery);
+}
+
+function backup_die(message)
+{
+	(function($){
+		// Make sure the timer is stopped
+		reset_timeout_bar();
+
+		// Hide progress and warnings
+		$('#backup-progress-pane').hide("fast");
+		$('#backup-warnings-panel').hide("fast");
+		$('#retry-panel').hide("fast");
+
+		// Set up the view log URL
+		var viewLogUrl = akeeba_logview_url + '&tag=' + akeeba_backup_tag;
+		if (akeeba_backup_id)
+		{
+			viewLogUrl = viewLogUrl + '.' + encodeURIComponent(akeeba_backup_id);
+		}
+		$('#ab-viewlog-error').attr('href', viewLogUrl);
+
 		// Setup and show error pane
 		$('#backup-error-message').html(message);
 		$('#error-panel').show();
@@ -1093,8 +1288,18 @@ function backup_complete()
 	(function($){
 		// Make sure the timer is stopped
 		reset_timeout_bar();
+
 		// Hide progress
 		$('#backup-progress-pane').hide("fast");
+
+		// Set up the view log URL
+		var viewLogUrl = akeeba_logview_url + '&tag=' + akeeba_backup_tag;
+		if (akeeba_backup_id)
+		{
+			viewLogUrl = viewLogUrl + '.' + encodeURIComponent(akeeba_backup_id);
+		}
+		$('#ab-viewlog-success').attr('href', viewLogUrl);
+
 		// Show finished pane
 		$('#backup-complete').show();
 		$('#backup-warnings-panel').width('100%');
@@ -1106,9 +1311,41 @@ function backup_complete()
 			if(akeeba_is_stw) {
 				alert(akeeba_translations['UI-STW-CONTINUE']);
 			}
-			
+
 			window.location = akeeba_return_url;
 		}
+	})(akeeba.jQuery);
+}
+
+function akeeba_restore_configuration_defaults()
+{
+	akeeba.jQuery.each(akeeba_config_passwordfields, function(curid, defvalue){
+		myElement = document.getElementById(curid);
+		try {
+			console.debug(curid + ' => ' + defvalue);
+		} catch(e) {
+		}
+		akeeba.jQuery(myElement).val('BROWSERS ARE BRAIN DEAD');
+		akeeba.jQuery(myElement).val(defvalue);
+	});
+}
+
+function akeeba_restore_backup_defaults()
+{
+	(function($){
+		$('#backup-description').val(default_short_descr);
+
+		if($('#angiekey').length)
+		{
+			$('#angiekey').val(config_angie_key);
+		}
+
+		if($('#jpskey').length)
+		{
+			$('#jpskey').val(jsp_key);
+		}
+
+		$('#comment').val('');
 	})(akeeba.jQuery);
 }
 
@@ -1148,9 +1385,9 @@ function fsfilter_toggle(data, caller, callback, use_inner_child)
 		// Make the icon spin
 		if(caller != null)
 		{
-			// Do not allow multiple simultaneous AJAX requests on the same object 
+			// Do not allow multiple simultaneous AJAX requests on the same object
 			if( caller.data('loading') == true ) return;
-			
+
 			caller.data('loading', true);
 			if(use_inner_child) {
 				var icon_span = caller.children('span:first');
@@ -1185,8 +1422,8 @@ function fsfilter_toggle(data, caller, callback, use_inner_child)
 				}
 			});
 		}
-	
-		
+
+
 		// Convert to JSON
 		var json = JSON.stringify(data);
 		// Assemble the data array and send the AJAX request
@@ -1246,7 +1483,7 @@ function fsfilter_toggle(data, caller, callback, use_inner_child)
 }
 
 /**
- * Renders the Filesystem Filters page 
+ * Renders the Filesystem Filters page
  * @param data
  * @return
  */
@@ -1301,7 +1538,7 @@ function fsfilter_render(data)
 							marginLeft: '5px'
 						})
 					);
-					
+
 					var new_data = new Object;
 					new_data.root = def[1];
 					new_data.crumbs = def[2];
@@ -1316,7 +1553,7 @@ function fsfilter_render(data)
 			myLi.appendTo(akcrumbs);
 			//if(counter < (crumbsdata.length-1) ) akcrumbs.append(' / ');
 		});
-		
+
 		// ----- Render the subdirectories
 		var akfolders = $('#folders');
 		akfolders.html('');
@@ -1346,7 +1583,7 @@ function fsfilter_render(data)
 		$.each(data.folders, function(folder, def){
 			var uielement = $(document.createElement('div'))
 				.addClass('folder-container');
-			
+
 			var available_filters = new Array;
 			available_filters.push('directories');
 			available_filters.push('skipdirs');
@@ -1380,17 +1617,17 @@ function fsfilter_render(data)
 						return html;
 					}
 				});
-				
+
 				switch(def[filter])
 				{
 					case 2:
 						ui_icon.addClass('ui-state-error');
 						break;
-						
+
 					case 1:
 						ui_icon.addClass('ui-state-highlight');
 						// Don't break; we have to add the handler!
-						
+
 					case 0:
 						ui_icon.click(function(){
 							var new_data = new Object;
@@ -1424,7 +1661,7 @@ function fsfilter_render(data)
 							marginLeft: '5px'
 						})
 					);
-					
+
 					var new_data = new Object;
 					new_data.root = data.root;
 					new_data.crumbs = crumbs;
@@ -1435,14 +1672,14 @@ function fsfilter_render(data)
 			// Render
 			uielement.appendTo(akfolders);
 		});
-		
+
 		// ----- Render the files
 		var akfiles = $('#files');
 		akfiles.html('');
 		$.each(data.files, function(file, def){
 			var uielement = $(document.createElement('div'))
 				.addClass('file-container');
-			
+
 			var available_filters = new Array;
 			available_filters.push('files');
 			$.each(available_filters, function(counter, filter){
@@ -1473,11 +1710,11 @@ function fsfilter_render(data)
 					case 2:
 						ui_icon.addClass('ui-state-error');
 						break;
-						
+
 					case 1:
 						ui_icon.addClass('ui-state-highlight');
 						// Don't break; we have to add the handler!
-						
+
 					case 0:
 						ui_icon.click(function(){
 							var new_data = new Object;
@@ -1530,7 +1767,7 @@ function fsfilter_load_tab(root)
 }
 
 /**
- * Add a row in the tabular view of the Filesystems Filter 
+ * Add a row in the tabular view of the Filesystems Filter
  * @param def
  * @param append_to_here
  * @return
@@ -1541,7 +1778,7 @@ function fsfilter_add_row(def, append_to_here)
 		// Turn def.type into something human readable
 		var type_text = akeeba_translations['UI-FILTERTYPE-'+def.type.toUpperCase()];
 		if(type_text == null) type_text = def.type;
-		
+
 		$(document.createElement('tr'))
 		.addClass('ak_filter_row')
 		.append(
@@ -1563,7 +1800,7 @@ function fsfilter_add_row(def, append_to_here)
 						$(this).parent().parent().remove();
 						return;
 					}
-					
+
 					var new_data = new Object;
 					new_data.root = $('#active_root').val();
 					new_data.crumbs = new Array();
@@ -1606,7 +1843,7 @@ function fsfilter_add_row(def, append_to_here)
 							$(this).remove();
 							return;
 						}
-						
+
 						// First, remove the old filter
 						var new_data = new Object;
 						new_data.root = $('#active_root').val();
@@ -1615,9 +1852,9 @@ function fsfilter_add_row(def, append_to_here)
 						new_data.new_node = new_value;
 						new_data.filter = def.type;
 						new_data.verb = 'swap';
-						
+
 						var input_box = $(this);
-						
+
 						fsfilter_toggle(new_data,
 							input_box.siblings('span.ak_filter_tab_icon_container:first').next(),
 							function(response, caller){
@@ -1631,7 +1868,7 @@ function fsfilter_add_row(def, append_to_here)
 						);
 					})
 					.focus();
-				})					
+				})
 				.append(
 					$(document.createElement('span'))
 					.addClass('ak-toggle-button ui-icon ui-icon-pencil editbutton')
@@ -1729,7 +1966,7 @@ function dbfilter_toggle(data, caller, callback)
 }
 
 /**
- * Renders the Database Filters page 
+ * Renders the Database Filters page
  * @param data
  * @return
  */
@@ -1743,7 +1980,7 @@ function dbfilter_render(data)
 		$.each(data.tables, function(table, dbef){
 			var uielement = $(document.createElement('div'))
 				.addClass('table-container');
-			
+
 			var available_filters = new Array;
 			available_filters.push('tables');
 			available_filters.push('tabledata');
@@ -1773,17 +2010,17 @@ function dbfilter_render(data)
 						return html;
 					}
 				});
-				
+
 				switch(dbef[filter])
 				{
 					case 2:
 						ui_icon.addClass('ui-state-error');
 						break;
-						
+
 					case 1:
 						ui_icon.addClass('ui-state-highlight');
 						// Don't break; we have to add the handler!
-						
+
 					case 0:
 						ui_icon.click(function(){
 							var new_data = new Object;
@@ -1860,7 +2097,7 @@ function dbfilter_render(data)
 							html = '<div class="tooltip-arrow-up-leftaligned"></div><div>'+akeeba_translations[icontip]+'</div>';
 							return html;
 						}
-					})					
+					})
 				)
 				.appendTo(uielement);
 			// Render
@@ -1890,7 +2127,7 @@ function dbfilter_load_tab(root)
 }
 
 /**
- * Add a row in the tabular view of the Filesystems Filter 
+ * Add a row in the tabular view of the Filesystems Filter
  * @param def
  * @param append_to_here
  * @return
@@ -1901,7 +2138,7 @@ function dbfilter_add_row(def, append_to_here)
 		// Turn def.type into something human readable
 		var type_text = akeeba_translations['UI-FILTERTYPE-'+def.type.toUpperCase()];
 		if(type_text == null) type_text = def.type;
-		
+
 		$(document.createElement('tr'))
 		.addClass('ak_filter_row')
 		.append(
@@ -1923,7 +2160,7 @@ function dbfilter_add_row(def, append_to_here)
 						$(this).parent().parent().remove();
 						return;
 					}
-					
+
 					var new_data = new Object;
 					new_data.root = $('#active_root').val();
 					new_data.node = def.node;
@@ -1965,7 +2202,7 @@ function dbfilter_add_row(def, append_to_here)
 							$(this).remove();
 							return;
 						}
-						
+
 						// First, remove the old filter
 						var new_data = new Object;
 						new_data.root = $('#active_root').val();
@@ -1973,9 +2210,9 @@ function dbfilter_add_row(def, append_to_here)
 						new_data.new_node = new_value;
 						new_data.filter = def.type;
 						new_data.verb = 'swap';
-						
+
 						var input_box = $(this);
-						
+
 						dbfilter_toggle(new_data,
 							input_box.siblings('span.ak_filter_tab_icon_container:first').next(),
 							function(response, caller){
@@ -1989,7 +2226,7 @@ function dbfilter_add_row(def, append_to_here)
 						);
 					})
 					.focus();
-				})					
+				})
 				.append(
 					$(document.createElement('span'))
 					.addClass('ak-toggle-button ui-icon ui-icon-pencil editbutton')
@@ -2206,7 +2443,7 @@ function pingSRPRestoration()
 	akeeba_srprestoration_stat_inbytes = 0;
 	akeeba_srprestoration_stat_outbytes = 0;
 	akeeba_srprestoration_stat_files = 0;
-	
+
 	// Do AJAX post
 	var post = {ajax : 'restoreFilesPing'};
 	start_timeout_bar(5000,80);
@@ -2225,7 +2462,7 @@ function startSRPRestoration()
 	akeeba_srprestoration_stat_inbytes = 0;
 	akeeba_srprestoration_stat_outbytes = 0;
 	akeeba_srprestoration_stat_files = 0;
-	
+
 	// Do AJAX post
 	var post = {ajax : 'restoreFilesStart'};
 	start_timeout_bar(5000,80);
@@ -2261,14 +2498,14 @@ function processSRPRestorationStep(data)
 			akeeba_srprestoration_stat_inbytes += data.bytesIn;
 			akeeba_srprestoration_stat_outbytes += data.bytesOut;
 			akeeba_srprestoration_stat_files += data.files;
-			
+
 			// Display data
 			(function($){
 				$('#extbytesin').html( akeeba_srprestoration_stat_inbytes );
 				$('#extbytesout').html( akeeba_srprestoration_stat_outbytes );
 				$('#extfiles').html( akeeba_srprestoration_stat_files );
 			})(akeeba.jQuery);
-			
+
 			// Do AJAX post
 			post = {
 				ajax: 'restoreFilesStep',
@@ -2340,16 +2577,16 @@ akeeba.jQuery.extend(akeeba.jQuery.easing, {
 //=============================================================================
 akeeba.jQuery(document).ready(function($){
 	// Create an AJAX manager
-	var akeeba_ajax_manager = $.manageAjax.create('akeeba_ajax_profile', { 
-		queue: true,  
+	var akeeba_ajax_manager = $.manageAjax.create('akeeba_ajax_profile', {
+		queue: true,
 		abortOld: false,
 		maxRequests: 1,
 		preventDoubbleRequests: false,
 		cacheResponse: false
-	}); 	
+	});
 	// Add hover state to buttons and other non jQuery UI elements
 	$('.ui-state-default').hover(
-	   function(){$(this).addClass('ui-state-hover');}, 
+	   function(){$(this).addClass('ui-state-hover');},
 	   function(){$(this).removeClass('ui-state-hover');}
 	);
 });

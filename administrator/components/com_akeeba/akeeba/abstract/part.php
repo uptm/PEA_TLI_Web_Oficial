@@ -84,6 +84,9 @@ abstract class AEAbstractPart extends AEAbstractObject
 	/** @var object Embedded installer preferences */
 	protected $installerSettings;
 
+	/** @var int How much milliseconds should we wait to reach the min exec time */
+	protected $waitTimeMsec = 0;
+
 	/**
 	 * Public constructor
 	 * @return AECoreDomainInstaller
@@ -162,35 +165,35 @@ abstract class AEAbstractPart extends AEAbstractObject
 				$this->isPrepared = false;
 				$this->isRunning = false;
 				$this->isFinished = false;
-				$this->hasRun = false;
+				$this->hasRan = false;
 				break;
 
 			case 'prepared':
 				$this->isPrepared = true;
 				$this->isRunning = false;
 				$this->isFinished = false;
-				$this->hasRun = false;
+				$this->hasRan = false;
 				break;
 
 			case 'running':
 				$this->isPrepared = true;
 				$this->isRunning = true;
 				$this->isFinished = false;
-				$this->hasRun = false;
+				$this->hasRan = false;
 				break;
 
 			case 'postrun':
 				$this->isPrepared = true;
 				$this->isRunning = false;
 				$this->isFinished = false;
-				$this->hasRun = true;
+				$this->hasRan = true;
 				break;
 
 			case 'finished':
 				$this->isPrepared = true;
 				$this->isRunning = false;
 				$this->isFinished = true;
-				$this->hasRun = false;
+				$this->hasRan = false;
 				break;
 
 			case 'error':
@@ -200,14 +203,18 @@ abstract class AEAbstractPart extends AEAbstractObject
 		}
 	}
 
-	/**
-	 * The public interface to an engine part. This method takes care for
-	 * calling the correct method in order to perform the initialisation -
-	 * run - finalisation cycle of operation and return a proper reponse array.
-	 * @return    array    A Reponse Array
-	 */
+    /**
+     * The public interface to an engine part. This method takes care for
+     * calling the correct method in order to perform the initialisation -
+     * run - finalisation cycle of operation and return a proper reponse array.
+     *
+     * @param     int      $nesting
+     *
+     * @return    array    A Reponse Array
+     */
 	final public function tick($nesting = 0)
 	{
+		$this->waitTimeMsec = 0;
 		$configuration = AEFactory::getConfiguration();
 		$timer = AEFactory::getTimer();
 
@@ -266,9 +273,23 @@ abstract class AEAbstractPart extends AEAbstractObject
 				$configuration->set('volatile.breakflag', false);
 				// Log that we're breaking the step
 				AEUtilLogger::WriteLog(_AE_LOG_DEBUG, "*** Batching of engine steps finished. I will now return control to the caller.");
+
+				// Do I need client-side sleep?
+				$serverSideSleep = true;
+				if (method_exists($this, 'getTag'))
+				{
+					$tag = $this->getTag();
+					$clientSideSleep = AEFactory::getConfiguration()->get('akeeba.basic.clientsidewait', 0);
+
+					if (in_array($tag, array('backend', 'restorepoint')) && $clientSideSleep)
+					{
+						$serverSideSleep = false;
+					}
+				}
+
 				// Enforce minimum execution time
 				$timer = AEFactory::getTimer();
-				$timer->enforce_min_exec_time(true);
+				$this->waitTimeMsec = (int)$timer->enforce_min_exec_time(true, $serverSideSleep);
 			}
 		}
 
@@ -329,17 +350,17 @@ abstract class AEAbstractPart extends AEAbstractObject
 			return "init";
 		}
 
-		if (!($this->isFinished) && !($this->isRunning) && !($this->hasRun) && ($this->isPrepared))
+		if (!($this->isFinished) && !($this->isRunning) && !($this->hasRan) && ($this->isPrepared))
 		{
 			return "prepared";
 		}
 
-		if (!($this->isFinished) && $this->isRunning && !($this->hasRun))
+		if (!($this->isFinished) && $this->isRunning && !($this->hasRan))
 		{
 			return "running";
 		}
 
-		if (!($this->isFinished) && !($this->isRunning) && $this->hasRun)
+		if (!($this->isFinished) && !($this->isRunning) && $this->hasRan)
 		{
 			return "postrun";
 		}

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version   $Id: AbstarctWordpressBasedProvider.php 11757 2013-06-26 16:24:01Z btowles $
+ * @version   $Id: AbstarctWordpressBasedProvider.php 22593 2014-08-08 14:46:31Z jakub $
  * @author    RocketTheme http://www.rockettheme.com
  * @copyright Copyright (C) 2007 - 2014 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
@@ -9,6 +9,32 @@
 abstract class RokSprocket_Provider_AbstarctWordpressBasedProvider extends RokSprocket_Provider
 {
 
+    protected function populateTags($items)
+   	{
+
+        if (!empty($items)) {
+
+            global $wpdb;
+
+            $query = 'SELECT tr.object_id as object_id, t.name as name FROM '.$wpdb->term_relationships. ' as tr LEFT JOIN ';
+            $query .= $wpdb->term_taxonomy.' AS tx on tr.term_taxonomy_id = tx.term_taxonomy_id LEFT JOIN ';
+            $query .= $wpdb->terms.' AS t ON tx.term_id = t.term_id WHERE tx.taxonomy = "post_tag"';
+            $query .= sprintf(" and tr.object_id in (%s)",implode(',',array_keys($items)));
+
+            $tags = $wpdb->get_results($query, OBJECT);
+
+            foreach($tags as $tag)
+            {
+                if(!isset($items[$tag->object_id]->tags) || !is_array( $items[$tag->object_id]->tags))
+                {
+                    $items[$tag->object_id]->tags = array();
+                }
+                $items[$tag->object_id]->tags[]=$tag->name;
+            }
+        }
+
+   		return $items;
+   	}
 
 	/**
 	 * @return RokSprocket_ItemCollection
@@ -35,6 +61,7 @@ abstract class RokSprocket_Provider_AbstarctWordpressBasedProvider extends RokSp
 			throw new RokSprocket_Exception($wpdb->last_error);
 		}
 
+        $this->populateTags($raw_results);
 		$converted = $this->convertRawToItems($raw_results);
 		$this->mapPerItemData($converted);
 		return $converted;
@@ -192,7 +219,7 @@ abstract class RokSprocket_Provider_AbstarctWordpressBasedProvider extends RokSp
 	protected function _cleanPreview($content)
 	{
 		//Replace src links
-		$base = get_bloginfo('wpurl');
+		$base = site_url();
 
 		$regex   = '#href="index.php\?([^"]*)#m';
 		$content = preg_replace_callback($regex, array('self', '_route'), $content);
@@ -227,7 +254,7 @@ abstract class RokSprocket_Provider_AbstarctWordpressBasedProvider extends RokSp
 		$original = $matches[0];
 		$url      = $matches[1];
 		$url      = str_replace('&amp;', '&', $url);
-		$route    = get_bloginfo('wpurl') . $url;
+		$route    = site_url() . $url;
 
 		return 'target="_blank" href="' . $route;
 	}

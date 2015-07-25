@@ -82,7 +82,7 @@ class AkeebaControllerBuadmin extends AkeebaControllerDefault
 
 		$part = $this->input->get('part', -1, 'int');
 
-		if ($this->input instanceof FOFInput)
+		if ($this->input instanceof F0FInput)
 		{
 			$cid = $this->input->get('cid', array(), 'array');
 		}
@@ -234,7 +234,7 @@ class AkeebaControllerBuadmin extends AkeebaControllerDefault
 			$this->_csrfProtection();
 		}
 
-		if ($this->input instanceof FOFInput)
+		if ($this->input instanceof F0FInput)
 		{
 			$cid = $this->input->get('cid', array(), 'array');
 		}
@@ -299,7 +299,7 @@ class AkeebaControllerBuadmin extends AkeebaControllerDefault
 			$this->_csrfProtection();
 		}
 
-		if ($this->input instanceof FOFInput)
+		if ($this->input instanceof F0FInput)
 		{
 			$cid = $this->input->get('cid', array(), 'array');
 		}
@@ -384,6 +384,7 @@ class AkeebaControllerBuadmin extends AkeebaControllerDefault
 			return true;
 		}
 
+		/** @var AkeebaModelStatistics $model */
 		$model = $this->getModel('statistics');
 		$model->setState('id', $id);
 

@@ -8,7 +8,10 @@
 
 defined('_AKEEBA') or die();
 
-echo $this->loadAnyTemplate('steps/steps', array('helpurl' => 'https://www.akeebabackup.com/documentation/quick-start-guide/angie-main.html'));
+echo $this->loadAnyTemplate('steps/steps', array(
+	'helpurl' => 'https://www.akeebabackup.com/documentation/solo/angie-joomla.html#angie-joomla-first',
+	'videourl' => 'https://www.akeebabackup.com/videos/1204-video-tutorials/akeeba-backup-course-with-brian-teeman/1508-abt06-restoring-to-new-server-using-kickstart.html'
+));
 ?>
 
 <!--[if IE]>

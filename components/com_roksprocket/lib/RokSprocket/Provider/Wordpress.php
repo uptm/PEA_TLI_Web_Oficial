@@ -1,6 +1,6 @@
 <?php
 /**
- * @version   $Id: Wordpress.php 19225 2014-02-27 00:15:10Z btowles $
+ * @version   $Id: Wordpress.php 21657 2014-06-19 18:02:32Z btowles $
  * @author    RocketTheme http://www.rockettheme.com
  * @copyright Copyright (C) 2007 - 2014 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
@@ -89,14 +89,14 @@ class RokSprocket_Provider_Wordpress extends RokSprocket_Provider_AbstarctWordpr
 
         $item->setCommentCount($raw_item->comment_count);
         if (!empty($raw_item->tags)) {
-            $tags = (explode(',', $raw_item->tags)) ? explode(',', $raw_item->tags) : array();
-            $item->setTags($tags);
+            $item->setTags($raw_item->tags);
         }
 
         $item->setDbOrder($dborder);
 
         return $item;
     }
+
 
     /**
      * @param $id

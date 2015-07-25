@@ -72,8 +72,41 @@ class ADatabaseDriverMysqli extends ADatabaseDriver
 		$options['password'] = (isset($options['password'])) ? $options['password'] : '';
 		$options['database'] = (isset($options['database'])) ? $options['database'] : '';
 		$options['select'] = (isset($options['select'])) ? (bool) $options['select'] : true;
-		$options['port'] = null;
-		$options['socket'] = null;
+		$options['port'] = (isset($options['port'])) ? (int) $options['port'] : null;
+		$options['socket'] = (isset($options['socket'])) ? $options['socket'] : null;
+
+		// Figure out if a port is included in the host name
+		if (empty($options['port']))
+		{
+			// Unlike mysql_connect(), mysqli_connect() takes the port and socket
+			// as separate arguments. Therefore, we have to extract them from the
+			// host string.
+			$options['port'] = null;
+			$options['socket'] = null;
+			$targetSlot = substr(strstr($options['host'], ":"), 1);
+
+			if (!empty($targetSlot))
+			{
+				// Get the port number or socket name
+				if (is_numeric($targetSlot))
+				{
+					$options['port'] = $targetSlot;
+				}
+				else
+				{
+					$options['socket'] = $targetSlot;
+				}
+
+				// Extract the host name only
+				$host = substr($options['host'], 0, strlen($options['host']) - (strlen($targetSlot) + 1));
+
+				// This will take care of the following notation: ":3306"
+				if ($host == '')
+				{
+					$options['host'] = 'localhost';
+				}
+			}
+		}
 
 		// Finalize initialisation.
 		parent::__construct($options);

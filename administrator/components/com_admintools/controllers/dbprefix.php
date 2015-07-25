@@ -1,27 +1,32 @@
 <?php
 /**
- *  @package AdminTools
- *  @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
- *  @license GNU General Public License version 3, or later
- *  @version $Id$
+ * @package   AdminTools
+ * @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
+ * @license   GNU General Public License version 3, or later
+ * @version   $Id$
  */
 
 // Protect from unauthorized access
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
 /**
  * A feature to change the site's database prefix - Controller
  */
-class AdmintoolsControllerDbprefix extends FOFController
+class AdmintoolsControllerDbprefix extends F0FController
 {
-	public function __construct($config = array()) {
+	public function __construct($config = array())
+	{
 		parent::__construct($config);
 
 		$this->modelName = 'dbprefix';
 	}
 
-	public function execute($task) {
-		if(!in_array($task, array('change'))) $task = 'browse';
+	public function execute($task)
+	{
+		if (!in_array($task, array('change')))
+		{
+			$task = 'browse';
+		}
 		parent::execute($task);
 	}
 
@@ -33,14 +38,17 @@ class AdmintoolsControllerDbprefix extends FOFController
 			return false;
 		}
 
-		$prefix = $this->input->getString('prefix','jos_');
+		$prefix = $this->input->getString('prefix', 'jos_');
 		$model = $this->getThisModel();
 
 		$result = $model->performChanges($prefix);
 		$url = 'index.php?option=com_admintools&view=dbprefix';
-		if($result !== true) {
+		if ($result !== true)
+		{
 			$this->setRedirect($url, $result, 'error');
-		} else {
+		}
+		else
+		{
 			$this->setRedirect($url, JText::sprintf('ATOOLS_LBL_DBREFIX_OK', $prefix));
 		}
 

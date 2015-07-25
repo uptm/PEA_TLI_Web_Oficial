@@ -1,6 +1,6 @@
 <?php
 /**
- * @version   $Id: overrides.php 6306 2013-01-05 05:39:57Z btowles $
+ * @version   $Id: overrides.php 21698 2014-06-25 17:44:42Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
  * @copyright Copyright (C) 2007 - 2014 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
@@ -23,7 +23,7 @@ if ($action == 'get_base_values') {
 	foreach ($gantry->_working_params as $param) {
 		if ($param['name'] == 'master') continue;
 		$param_name                = $namehelper->get_field_id($param['name']);
-		$passed_array[$param_name] = $param['value'];
+		$passed_array[$param_name] = htmlentities($param['value'], ENT_QUOTES);
 	}
 	$outdata = json_encode($passed_array);
 	echo $outdata;
@@ -31,7 +31,7 @@ if ($action == 'get_base_values') {
 	$passed_array = array();
 	foreach ($gantry->_working_params as $param) {
 		$param_name                = $namehelper->get_field_id($param['name']);
-		$passed_array[$param_name] = $param['default'];
+		$passed_array[$param_name] = htmlentities($param['default'], ENT_QUOTES);
 	}
 	$outdata = json_encode($passed_array);
 	echo $outdata;

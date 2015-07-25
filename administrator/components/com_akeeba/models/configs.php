@@ -9,12 +9,12 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
-class AkeebaModelConfigs extends FOFModel
+class AkeebaModelConfigs extends F0FModel
 {
 	public function saveEngineConfig()
 	{
 		$data = $this->getState('engineconfig', array());
-		
+
 		// Forbid stupidly selecting the site's root as the output or temporary directory
 		if( array_key_exists('akeeba.basic.output_directory', $data) )
 		{
@@ -36,7 +36,7 @@ class AkeebaModelConfigs extends FOFModel
 		// Save configuration
 		AEPlatform::getInstance()->save_configuration();
 	}
-	
+
 	public function testFTP()
 	{
 		$config = array(
@@ -69,7 +69,7 @@ class AkeebaModelConfigs extends FOFModel
 		}
 		return $result;
 	}
-	
+
 	public function testSFTP()
 	{
 		$config = array(
@@ -102,33 +102,33 @@ class AkeebaModelConfigs extends FOFModel
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * Opens an OAuth window for the selected post-processing engine
-	 * 
-	 * @return boolean 
+	 *
+	 * @return boolean
 	 */
 	public function dpeOuthOpen()
 	{
 		$engine = $this->getState('engine');
 		$params = $this->getState('params', array());
-		
+
 		$engine = AEFactory::getPostprocEngine($engine);
 		if($engine === false) return false;
 		$engine->oauthOpen($params);
 	}
-	
+
 	/**
 	 * Runs a custom API call for the selected post-processing engine
-	 * 
-	 * @return boolean 
+	 *
+	 * @return boolean
 	 */
 	public function dpeCustomAPICall()
 	{
 		$engine = $this->getState('engine');
 		$method = $this->getState('method');
 		$params = $this->getState('params', array());
-		
+
 		$engine = AEFactory::getPostprocEngine($engine);
 		if($engine === false) return false;
 		return $engine->customApiCall($method, $params);

@@ -14,7 +14,7 @@ defined('_JEXEC') or die();
  * MVC View for Log
  *
  */
-class AkeebaViewLog extends FOFViewHtml
+class AkeebaViewLog extends F0FViewHtml
 {
 	public function onBrowse($tpl = null)
 	{
@@ -22,6 +22,7 @@ class AkeebaViewLog extends FOFViewHtml
 		AkeebaHelperIncludes::addHelp('log');
 
 		// Get a list of log names
+		/** @var AkeebaModelLogs $model */
 		$model = $this->getModel();
 		$this->logs = $model->getLogList();
 
@@ -34,21 +35,21 @@ class AkeebaViewLog extends FOFViewHtml
 		$this->profileid = $profileid;
 
 		// Get profile name
-		$pmodel = FOFModel::getAnInstance('Profiles', 'AkeebaModel');
+		$pmodel = F0FModel::getAnInstance('Profiles', 'AkeebaModel');
 		$pmodel->setId($profileid);
 		$profile_data = $pmodel->getItem();
 		$this->profilename = $profile_data->description;
 
 		return true;
 	}
-	
+
 	public function onIframe($tpl = null)
 	{
 		$model = $this->getModel();
 		$tag = $model->getState('tag');
 		if(empty($tag)) $tag = null;
 		$this->tag = $tag;
-		
+
 		return true;
 	}
 }

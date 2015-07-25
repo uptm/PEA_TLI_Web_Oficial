@@ -302,6 +302,10 @@ class AEPlatformJoomla25 extends AEPlatformAbstract
 					return 'AEDriverPlatformJoomla';
 					break;
 
+				case 'pdomysql':
+					return 'AEDriverPlatformJoomla';
+					break;
+
 				// Some custom driver. Uh oh!
 				default:
 					break;
@@ -321,13 +325,17 @@ class AEPlatformJoomla25 extends AEPlatformAbstract
 		{
 			return 'AEDriverSqlsrv';
 		}
-		elseif( strtolower(substr($driver, 0, 6)) == 'sqlazure' )
+		elseif( strtolower(substr($driver, 0, 8)) == 'sqlazure' )
 		{
 			return 'AEDriverSqlazure';
 		}
-		elseif( strtolower(substr($driver, 0, 6)) == 'postgresql' )
+		elseif( strtolower(substr($driver, 0, 10)) == 'postgresql' )
 		{
 			return 'AEDriverPostgresql';
+		}
+		elseif( strtolower(substr($driver, 0, 8)) == 'pdomysql' )
+		{
+			return 'AEDriverPdomysql';
 		}
 
 		// If we're still here, we have to guesstimate the correct driver. All bets are off.
@@ -425,21 +433,55 @@ class AEPlatformJoomla25 extends AEPlatformAbstract
 	 */
 	public function log_platform_special_directories()
 	{
+		$ret = array();
+
 		AEUtilLogger::WriteLog(_AE_LOG_INFO, "JPATH_BASE         :" . JPATH_BASE );
 		AEUtilLogger::WriteLog(_AE_LOG_INFO, "JPATH_SITE         :" . JPATH_SITE );
 		AEUtilLogger::WriteLog(_AE_LOG_INFO, "JPATH_ROOT         :" . JPATH_ROOT );
 		AEUtilLogger::WriteLog(_AE_LOG_INFO, "JPATH_CACHE        :" . JPATH_CACHE );
 		AEUtilLogger::WriteLog(_AE_LOG_INFO, "Computed root      :" . $this->get_site_root() );
 
+		// If the release is older than 3 months, issue a warning
+		if (defined('AKEEBA_DATE'))
+		{
+			$releaseDate = new JDate(AKEEBA_DATE);
+
+			if (time() - $releaseDate->toUnix() > 7776000)
+			{
+				if (!isset($ret['warnings']))
+				{
+					$ret['warnings'] = array();
+					$ret['warnings'] = array_merge($ret['warnings'], array(
+						'Your version of Akeeba Backup is more than 90 days old and most likely already out of date. Please check if a newer version is published and install it.'
+					));
+				}
+			}
+
+		}
+
 		// Detect UNC paths and warn the user
 		if(DIRECTORY_SEPARATOR == '\\') {
 			if( (substr(JPATH_ROOT, 0, 2) == '\\\\') || (substr(JPATH_ROOT, 0, 2) == '//') ) {
-				AEUtilLogger::WriteLog(_AE_LOG_WARNING, 'Your site\'s root is using a UNC path (e.g. \\SERVER\path\to\root). PHP has known bugs which may');
-				AEUtilLogger::WriteLog(_AE_LOG_WARNING, 'prevent it from working properly on a site like this. Please take a look at');
-				AEUtilLogger::WriteLog(_AE_LOG_WARNING, 'https://bugs.php.net/bug.php?id=40163 and https://bugs.php.net/bug.php?id=52376. As a result your');
-				AEUtilLogger::WriteLog(_AE_LOG_WARNING, 'backup may fail.');
+				if (!isset($ret['warnings']))
+				{
+					$ret['warnings'] = array();
+				}
+
+				$ret['warnings'] = array_merge($ret['warnings'], array(
+					'Your site\'s root is using a UNC path (e.g. \\SERVER\path\to\root). PHP has known bugs which may',
+					'prevent it from working properly on a site like this. Please take a look at',
+					'https://bugs.php.net/bug.php?id=40163 and https://bugs.php.net/bug.php?id=52376. As a result your',
+					'backup may fail.'
+				));
 			}
 		}
+
+		if (empty($ret))
+		{
+			$ret = null;
+		}
+
+		return $ret;
 	}
 
 	/**

@@ -3,7 +3,7 @@
  * RokAjaxSearch Module
  *
  * @package RocketTheme
- * @version   2.0.2 February 17, 2014
+ * @version   2.0.3 May 2, 2014
  * @author    RocketTheme http://www.rockettheme.com
  * @copyright Copyright (C) 2007 - 2014 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only

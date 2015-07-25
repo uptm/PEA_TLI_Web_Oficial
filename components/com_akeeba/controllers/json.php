@@ -12,7 +12,7 @@ defined('_JEXEC') or die();
 
 defined('AKEEBA_BACKUP_ORIGIN') or define('AKEEBA_BACKUP_ORIGIN','json');
 
-class AkeebaControllerJson extends FOFController
+class AkeebaControllerJson extends F0FController
 {
 	public function __construct($config = array()) {
 		$config['csrf_protection'] = false;
@@ -45,6 +45,7 @@ class AkeebaControllerJson extends FOFController
 			}
 		}
 
+		/** @var AkeebaModelJsons $model */
 		$model = $this->getThisModel();
 		$json = $model->execute($sourceJSON);
 		if(function_exists('ob_clean')) @ob_clean();

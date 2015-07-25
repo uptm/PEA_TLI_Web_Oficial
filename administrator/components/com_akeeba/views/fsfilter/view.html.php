@@ -14,7 +14,7 @@ defined('_JEXEC') or die();
  * View class for the Filesystem Filters
  *
  */
-class AkeebaViewFsfilter extends FOFViewHtml
+class AkeebaViewFsfilter extends F0FViewHtml
 {
 	public function onBrowse($tpl = null)
 	{
@@ -22,7 +22,7 @@ class AkeebaViewFsfilter extends FOFViewHtml
 		$task = $model->getState('browse_task', 'normal');
 
 		// Add custom submenus
-		$toolbar = FOFToolbar::getAnInstance($this->input->get('option','com_foobar','cmd'), $this->config);
+		$toolbar = F0FToolbar::getAnInstance($this->input->get('option','com_foobar','cmd'), $this->config);
 		$toolbar->appendLink(
 			JText::_('FILTERS_LABEL_NORMALVIEW'),
 			JURI::base().'index.php?option=com_akeeba&view=fsfilter&task=normal',
@@ -98,7 +98,7 @@ class AkeebaViewFsfilter extends FOFViewHtml
 		$this->profileid = $profileid;
 
 		// Get profile name
-		$pmodel = FOFModel::getAnInstance('Profiles', 'AkeebaModel');
+		$pmodel = F0FModel::getAnInstance('Profiles', 'AkeebaModel');
 		$pmodel->setId($profileid);
 		$profile_data = $pmodel->getItem();
 		$this->profilename = $profile_data->description;

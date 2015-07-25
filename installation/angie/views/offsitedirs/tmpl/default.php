@@ -23,7 +23,7 @@ ENDSRIPT
 );
 
 echo $this->loadAnyTemplate('steps/buttons');
-echo $this->loadAnyTemplate('steps/steps', array('helpurl' => ''));
+echo $this->loadAnyTemplate('steps/steps', array('helpurl' => 'https://www.akeebabackup.com/documentation/solo/angie-installers.html#angie-common-offsite'));
 ?>
 
 <div class="modal hide fade" id="restoration-dialog">

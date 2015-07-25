@@ -1,25 +1,30 @@
 <?php
 /**
- *  @package AdminTools
- *  @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
- *  @license GNU General Public License version 3, or later
- *  @version $Id$
+ * @package   AdminTools
+ * @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
+ * @license   GNU General Public License version 3, or later
+ * @version   $Id$
  */
 
 // Protect from unauthorized access
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
-class AdmintoolsControllerFixpermsconfig extends FOFController
+class AdmintoolsControllerFixpermsconfig extends F0FController
 {
-	public function __construct($config = array()) {
+	public function __construct($config = array())
+	{
 		parent::__construct($config);
 
 		$this->modelName = 'Fixpermsconfig';
 	}
 
-	public function execute($task) {
-		if(!in_array($task, array('savedefaults','saveperms','saveapplyperms'))) $task = 'browse';
-		$this->getThisModel()->setState('task',$task);
+	public function execute($task)
+	{
+		if (!in_array($task, array('savedefaults', 'saveperms', 'saveapplyperms')))
+		{
+			$task = 'browse';
+		}
+		$this->getThisModel()->setState('task', $task);
 		parent::execute($task);
 	}
 
@@ -29,8 +34,8 @@ class AdmintoolsControllerFixpermsconfig extends FOFController
 		$this->_csrfProtection();
 
 		$model = $this->getThisModel();
-		$model->setState('dirperms', $this->input->getCmd('dirperms','0755'));
-		$model->setState('fileperms', $this->input->getCmd('fileperms','0644'));
+		$model->setState('dirperms', $this->input->getCmd('dirperms', '0755'));
+		$model->setState('fileperms', $this->input->getCmd('fileperms', '0644'));
 		$model->saveDefaults();
 
 		$message = JText::_('ATOOLS_LBL_FIXPERMSCONFIG_DEFAULTSSAVED');
@@ -39,10 +44,10 @@ class AdmintoolsControllerFixpermsconfig extends FOFController
 
 	public function onBeforeBrowse()
 	{
-		$path = $this->input->get('path','','none',2);
+		$path = $this->input->get('path', '', 'none', 2);
 
 		$model = $this->getThisModel();
-		$model->setState('path',$path);
+		$model->setState('path', $path);
 		$model->applyPath();
 
 		return $this->checkACL('admintools.maintenance');
@@ -59,8 +64,8 @@ class AdmintoolsControllerFixpermsconfig extends FOFController
 		$this->save_custom_permissions();
 
 		$message = JText::_('ATOOLS_LBL_FIXPERMSCONFIG_CUSTOMSAVED');
-		$path = $this->input->get('path','', 'none', 2);
-		$this->setRedirect('index.php?option=com_admintools&view=fixpermsconfig&path='.urlencode($path), $message);
+		$path = $this->input->get('path', '', 'none', 2);
+		$this->setRedirect('index.php?option=com_admintools&view=fixpermsconfig&path=' . urlencode($path), $message);
 	}
 
 	/**
@@ -74,16 +79,16 @@ class AdmintoolsControllerFixpermsconfig extends FOFController
 		$this->save_custom_permissions(true);
 
 		$message = JText::_('ATOOLS_LBL_FIXPERMSCONFIG_CUSTOMSAVEDAPPLIED');
-		$path = $this->input->get('path','', 'none', 2);
-		$this->setRedirect('index.php?option=com_admintools&view=fixpermsconfig&path='.urlencode($path), $message);
+		$path = $this->input->get('path', '', 'none', 2);
+		$this->setRedirect('index.php?option=com_admintools&view=fixpermsconfig&path=' . urlencode($path), $message);
 	}
 
 	private function save_custom_permissions($apply = false)
 	{
-		$path = $this->input->get('path','', 'none', 2);
+		$path = $this->input->get('path', '', 'none', 2);
 
 		$model = $this->getThisModel();
-		$model->setState('path',$path);
+		$model->setState('path', $path);
 		$model->applyPath();
 
 		$folders = $this->input->get('folders', array(), 'array', 2);

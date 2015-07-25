@@ -13,16 +13,16 @@ defined('_JEXEC') or die();
  * The Profiles MVC model class
  *
  */
-class AkeebaModelProfiles extends FOFModel
+class AkeebaModelProfiles extends F0FModel
 {
-	
+
 	public function __construct($config = array()) {
 		parent::__construct($config);
 		// This fixes an issue where sometimes no profiles are shown
 		$this->setState('configuration', '');
 		$this->setState('filter', '');
 	}
-	
+
 	/**
 	 * Returns the entry for the profile whose ID is loaded in the model
 	 *
@@ -43,7 +43,7 @@ class AkeebaModelProfiles extends FOFModel
 	{
 		return $this->getItemList($overrideLimits);
 	}
-	
+
 	/**
 	 * Tries to copy the profile whose ID is set in the model to a new record
 	 *
@@ -52,7 +52,7 @@ class AkeebaModelProfiles extends FOFModel
 	public function copy()
 	{
 		$id = $this->getId();
-		
+
 		// Check for invalid id's (not numeric, or <= 0)
 		if( (!is_numeric($id)) || ($id <= 0) )
 		{
@@ -60,14 +60,14 @@ class AkeebaModelProfiles extends FOFModel
 			return false;
 		}
 
-		$profile = FOFModel::getTmpInstance('Profiles', 'AkeebaModel')
+		$profile = F0FModel::getTmpInstance('Profiles', 'AkeebaModel')
 			->setId($id)
 			->getItem()
 			->getData();
 		$profile['id'] = 0;
 		$oProfile = $this->getTable();
 		$oProfile->reset();
-		$status = $oProfile->save($profile);		
+		$status = $oProfile->save($profile);
 		if($status) {
 			$this->setId($oProfile->id);
 		}
@@ -95,7 +95,7 @@ class AkeebaModelProfiles extends FOFModel
 		// Cache the current profile
 		$session = JFactory::getSession();
 		$currentProfileID = $session->get('profile', null, 'akeeba');
-		
+
 		$db = $this->getDBO();
 		$query = $db->getQuery(true)
 			->select($db->qn('id'))
@@ -109,9 +109,9 @@ class AkeebaModelProfiles extends FOFModel
 			$pConf = AEFactory::getConfiguration();
 			$engines[$profileID] = $pConf->get('akeeba.advanced.proc_engine');
 		}
-		
+
 		AEPlatform::getInstance()->load_configuration($currentProfileID);
-		
+
 		return $engines;
 	}
 

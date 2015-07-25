@@ -20,6 +20,8 @@ class AEPlatform
 {
 	private $_platformObject = null;
 
+	private static $knownPlatformsDirectories = array();
+
 	/**
 	 * Implements the Singleton pattern for this clas
 	 *
@@ -89,9 +91,9 @@ class AEPlatform
 			'priority' => 0,
 		);
 
-		foreach ($platforms as $platform)
+		foreach ($platforms as $platform => $path)
 		{
-			$o = $this->loadPlatform($platform);
+			$o = $this->loadPlatform($platform, $path);
 			if (is_null($o))
 			{
 				continue;
@@ -117,10 +119,22 @@ class AEPlatform
 	 *
 	 * @return  AEPlatformAbstract
 	 */
-	private function &loadPlatform($platform)
+	private function &loadPlatform($platform, $path = null)
 	{
-		$basedir = dirname(__FILE__);
-		$classFile = $basedir . '/' . $platform . '/platform.php';
+		if (empty($path))
+		{
+			if (isset(static::$knownPlatformsDirectories[$platform]))
+			{
+				$path = static::$knownPlatformsDirectories[$platform];
+			}
+		}
+
+		if (empty($path))
+		{
+			$path = dirname(__FILE__) . '/' . $platform;
+		}
+
+		$classFile = $path . '/platform.php';
 		$className = 'AEPlatform' . ucfirst($platform);
 
 		$null = null;
@@ -142,11 +156,9 @@ class AEPlatform
 	 *
 	 * @return  array  The list of available platforms
 	 */
-	public function listPlatforms()
+	static public function listPlatforms()
 	{
-		static $platforms = array();
-
-		if (empty($platforms))
+		if (empty(static::$knownPlatformsDirectories))
 		{
 			$basedir = dirname(__FILE__);
 			$dh = opendir($basedir);
@@ -156,14 +168,25 @@ class AEPlatform
 				{
 					continue;
 				}
+
 				if (is_dir($basedir . '/' . $file))
 				{
-					$platforms[] = $file;
+					static::$knownPlatformsDirectories[$file] = $basedir . '/' . $file;
 				}
 			}
 		}
 
-		return $platforms;
+		return static::$knownPlatformsDirectories;
+	}
+
+	public static function addPlatform($slug, $platformDirectory)
+	{
+		if (empty(static::$knownPlatformsDirectories))
+		{
+			static::listPlatforms();
+
+			static::$knownPlatformsDirectories[$slug] = $platformDirectory;
+		}
 	}
 
 	/**

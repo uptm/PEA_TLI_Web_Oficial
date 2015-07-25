@@ -233,7 +233,7 @@ abstract class ADatabaseRestore
 	/**
 	 * Remove all cached information from the session storage
 	 */
-	protected function removeInformationFromStorage()
+	public function removeInformationFromStorage()
 	{
 		$variables = array('start', 'foffset', 'totalqueries', 'curpart',
 			'partsmap', 'totalsize', 'runsize');

@@ -418,8 +418,6 @@ class AEDriverMysql extends AEAbstractDriver
 	 */
 	public function query()
 	{
-		$this->open();
-
 		if (!is_resource($this->connection))
 		{
 			throw new RuntimeException($this->errorMsg, $this->errorNum);
@@ -459,9 +457,9 @@ class AEDriverMysql extends AEAbstractDriver
 				{
 					// Attempt to reconnect.
 					$this->connection = null;
-					$this->connect();
+					$this->open();
 				}
-					// If connect fails, ignore that exception and throw the normal exception.
+				// If connect fails, ignore that exception and throw the normal exception.
 				catch (RuntimeException $e)
 				{
 					// Get the error number and message.
@@ -755,7 +753,16 @@ class AEDriverMysql extends AEAbstractDriver
 			// 1. Stored procedures
 			$sql = "SHOW PROCEDURE STATUS WHERE " . $this->quoteName('Db') . "=" . $this->Quote($this->_database);
 			$this->setQuery($sql);
-			$all_entries = $this->loadAssocList();
+
+			try
+			{
+				$all_entries = $this->loadAssocList();
+			}
+			catch (Exception $e)
+			{
+				$all_entries = array();
+			}
+
 			if (count($all_entries))
 			{
 				foreach ($all_entries as $entry)
@@ -772,7 +779,16 @@ class AEDriverMysql extends AEAbstractDriver
 			// 2. Stored functions
 			$sql = "SHOW FUNCTION STATUS WHERE " . $this->quoteName('Db') . "=" . $this->Quote($this->_database);
 			$this->setQuery($sql);
-			$all_entries = $this->loadColumn(1);
+
+			try
+			{
+				$all_entries = $this->loadColumn(1);
+			}
+			catch (Exception $e)
+			{
+				$all_entries = array();
+			}
+
 			// If we have filters, make sure the tables pass the filtering
 			if (is_array($all_entries))
 			{
@@ -792,7 +808,16 @@ class AEDriverMysql extends AEAbstractDriver
 			// 3. Triggers
 			$sql = "SHOW TRIGGERS";
 			$this->setQuery($sql);
-			$all_entries = $this->loadColumn();
+
+			try
+			{
+				$all_entries = $this->loadColumn();
+			}
+			catch (Exception $e)
+			{
+				$all_entries = array();
+			}
+
 			// If we have filters, make sure the tables pass the filtering
 			if (is_array($all_entries))
 			{

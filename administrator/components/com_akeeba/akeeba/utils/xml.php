@@ -124,7 +124,7 @@ class AEUtilXml {
 
         // We don't generally care about any whitespace
         $dom->preserveWhiteSpace = false;
-        
+
         $dom->loadXML(self::convertDAVNamespace($xml),LIBXML_NOWARNING | LIBXML_NOERROR);
 
         if ($error = libxml_get_last_error()) {
@@ -175,7 +175,7 @@ class AEUtilXml {
 
                 $propertyName = self::toClarkNotation($propNodeData);
                 if (isset($propertyMap[$propertyName])) {
-                    $propList[$propertyName] = call_user_func(array($propertyMap[$propertyName],'unserialize'),$propNodeData);
+                    $propList[$propertyName] = call_user_func(array($propertyMap[$propertyName], 'unserializeNode'), $propNodeData);
                 } else {
                     $propList[$propertyName] = $propNodeData->textContent;
                 }
@@ -187,4 +187,16 @@ class AEUtilXml {
 
     }
 
+    public static function unserializeNode(DOMElement $dom)
+    {
+        $value = array();
+
+        foreach($dom->childNodes as $child) {
+
+            $value[] = self::toClarkNotation($child);
+
+        }
+
+        return $value;
+    }
 }

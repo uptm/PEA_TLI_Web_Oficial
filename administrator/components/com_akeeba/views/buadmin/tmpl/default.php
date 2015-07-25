@@ -14,6 +14,10 @@ JHtml::_('behavior.framework');
 JHtml::_('behavior.calendar');
 JHtml::_('behavior.modal');
 
+$dateFormat = AEUtilComconfig::getValue('dateformat', '');
+$dateFormat = trim($dateFormat);
+$dateFormat = !empty($dateFormat) ? $dateFormat : JText::_('DATE_FORMAT_LC4');
+
 // Filesize formatting function by eregon at msn dot com
 // Published at: http://www.php.net/manual/en/function.number-format.php
 function format_filesize($number, $decimals = 2, $force_unit = false, $dec_char = '.', $thousands_char = '')
@@ -231,14 +235,14 @@ foreach ($scripting['scripts'] as $key => $data)
 		$id = 1 - $id;
 		$check = JHTML::_('grid.id', ++$i, $record['id']);
 
+		$backupId = isset($record['backupid']) ? $record['backupid'] : '';
 		$origin_lbl = 'STATS_LABEL_ORIGIN_' . strtoupper($record['origin']);
 		$origin = JText::_($origin_lbl);
-		/*
-		if($origin == $origin_lbl)
+
+		if (empty($origin_lbl))
 		{
 			$origin = '&ndash;';
 		}
-		/**/
 
 		if (array_key_exists($record['type'], $backup_types))
 		{
@@ -340,6 +344,16 @@ ENDHTML;
 			}
 		}
 
+		// If there is a backup ID, show the view log button
+		if (($record['meta'] == 'ok') && isset($record['backupid']) && !empty($record['backupid']))
+		{
+			$viewLogTag = $record['tag'] . '.' . $record['backupid'];
+			$viewLogUrl = JURI::base() . 'index.php?option=com_akeeba&view=log&tag=' . $viewLogTag . '&profileid=' . $record['profile_id'];
+			$viewLogLabel = JText::_('VIEWLOG');
+			$filename_col .= '<br><a class="btn btn-mini" href="' . $viewLogUrl . '">' .
+				'<span class="icon icon-list-alt"></span>' . $viewLogLabel . '</a>';
+		}
+
 		// Link for Show Comments lightbox
 		$info_link = "";
 		if (!empty($record['comment']))
@@ -381,9 +395,15 @@ ENDHTML;
 			<td>
 				<?php echo $info_link ?>
 				<a href="<?php echo $edit_link; ?>"><?php echo $this->escape($record['description']) ?></a>
+				<?php if ($backupId): ?>
+					<br/>
+					<small>
+						<?php echo $backupId ?>
+					</small>
+				<?php endif; ?>
 			</td>
 			<td>
-				<?php echo $startTime->format(JText::_('DATE_FORMAT_LC4'), true); ?>
+				<?php echo $startTime->format($dateFormat, true); ?>
 			</td>
 			<td class="hidden-phone">
 				<?php echo $duration; ?>
@@ -393,7 +413,9 @@ ENDHTML;
 					<?php echo $status ?>
 				</span>
 			</td>
-			<td class="hidden-phone"><?php echo $origin ?></td>
+			<td class="hidden-phone">
+				<?php echo $origin ?>
+			</td>
 			<td class="hidden-phone"><?php echo $type ?></td>
 			<td class="hidden-phone"><?php echo $record['profile_id'] ?></td>
 			<td class="hidden-phone"><?php echo ($record['meta'] == 'ok') ? format_filesize($record['size']) : ($record['total_size'] > 0 ? "(<i>" . format_filesize($record['total_size']) . "</i>)" : '&mdash;') ?></td>

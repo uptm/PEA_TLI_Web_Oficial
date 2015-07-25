@@ -11,10 +11,11 @@
 /* Features - Layout Showcase - Content */
 .pagination-active {margin-bottom: 35px;}
 .layout-showcase .sprocket-features-list {position: relative;overflow: hidden;padding: 0 !important;}
-.layout-showcase .sprocket-features-list li {position: absolute;top: auto;left: auto;opacity: 0;width: 100%;height: 100%;display: none;}
+.layout-showcase .sprocket-features-list li {position: absolute;top: 0;left: 0;opacity: 0;width: 100%;height: 100%;display: none;}
 .layout-showcase .sprocket-features-list li.active {position: static;height: auto;opacity: 1;display: block;}
 .arrows-active .sprocket-features-list {margin-left: 50px;margin-right: 50px;}
 .layout-showcase .sprocket-features-img-container img {float: left;margin-right: 25px;}
+.layout-showcase .sprocket-features-list .sprocket-features-desc li {display: list-item;opacity: 1;position: relative;}
 
 /* Features - Layout Showcase - Navigation */
 .layout-showcase .sprocket-features-arrows .arrow {position: absolute;display: block;width: 24px;height: 24px;top: 50%;margin-top: -12px;border-radius: 1em;opacity: 0.5;cursor: pointer;z-index: 10;text-align: center;font-size: 2.2em;}
@@ -35,3 +36,6 @@
 
 /* Features - Layout Showcase - Transitions */
 .layout-showcase .sprocket-features-pagination li, .layout-showcase .sprocket-features-arrows .arrow {-webkit-transition: opacity 0.2s ease-in;-moz-transition: opacity 0.2s ease-in;-o-transition: opacity 0.2s ease-in;transition: opacity 0.2s ease-in;}
+
+
+

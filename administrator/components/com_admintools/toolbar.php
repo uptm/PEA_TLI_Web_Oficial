@@ -1,14 +1,14 @@
 <?php
 /**
- *  @package AdminTools
- *  @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
- *  @license GNU General Public License version 3, or later
+ * @package   AdminTools
+ * @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
+ * @license   GNU General Public License version 3, or later
  */
 
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
-class AdmintoolsToolbar extends FOFToolbar
+class AdmintoolsToolbar extends F0FToolbar
 {
 	/**
 	 * Disable rendering a toolbar.
@@ -20,12 +20,16 @@ class AdmintoolsToolbar extends FOFToolbar
 		return array();
 	}
 
-	public function onCpanelsBrowse() {
+	public function onCpanelsBrowse()
+	{
 		// Set the toolbar title
-		if(ADMINTOOLS_PRO) {
-			JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DASHBOARD_PRO').' <small>'.ADMINTOOLS_VERSION.'</small>','admintools');
-		} else {
-			JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DASHBOARD_CORE').' <small>'.ADMINTOOLS_VERSION.'</small>','admintools');
+		if (ADMINTOOLS_PRO)
+		{
+			JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DASHBOARD_PRO') . ' <small>' . ADMINTOOLS_VERSION . '</small>', 'admintools');
+		}
+		else
+		{
+			JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DASHBOARD_CORE') . ' <small>' . ADMINTOOLS_VERSION . '</small>', 'admintools');
 		}
 
 		JToolBarHelper::preferences('com_admintools');
@@ -33,13 +37,13 @@ class AdmintoolsToolbar extends FOFToolbar
 
 	public function onEomsBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_EOM'),'admintools');
-		JToolBarHelper::back('JTOOLBAR_BACK','index.php?option=com_admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_EOM'), 'admintools');
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
 	}
 
 	public function onMasterpwsBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_MASTERPW'),'admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_MASTERPW'), 'admintools');
 		JToolBarHelper::save();
 		JToolBarHelper::divider();
 		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
@@ -48,33 +52,44 @@ class AdmintoolsToolbar extends FOFToolbar
 	public function onAdminpwsBrowse()
 	{
 		// Set the toolbar title
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_ADMINPW'),'admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_ADMINPW'), 'admintools');
 		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
 	}
 
 	public function onHtmakersBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_HTMAKER'),'admintools');
-		JToolBarHelper::save('save','ATOOLS_LBL_HTMAKER_SAVE');
-		JToolBarHelper::apply('apply','ATOOLS_LBL_HTMAKER_APPLY');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_HTMAKER'), 'admintools');
+		JToolBarHelper::save('save', 'ATOOLS_LBL_HTMAKER_SAVE');
+		JToolBarHelper::apply('apply', 'ATOOLS_LBL_HTMAKER_APPLY');
 		JToolBarHelper::divider();
 		JToolBarHelper::preview('index.php?option=com_admintools&view=htmaker&tmpl=component');
 		JToolBarHelper::divider();
-		JToolBarHelper::back('JTOOLBAR_BACK','index.php?option=com_admintools');
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
+	}
+
+	public function onNginxmakersBrowse()
+	{
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_NGINXMAKER'), 'admintools');
+		JToolBarHelper::save('save', 'ATOOLS_LBL_NGINXMAKER_SAVE');
+		JToolBarHelper::apply('apply', 'ATOOLS_LBL_NGINXMAKER_APPLY');
+		JToolBarHelper::divider();
+		JToolBarHelper::preview('index.php?option=com_admintools&view=nginxmaker&tmpl=component');
+		JToolBarHelper::divider();
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
 	}
 
 	public function onWafsAdd()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_WAF'),'admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_WAF'), 'admintools');
 		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
 	}
 
 	public function onWafconfigsBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_WAFCONFIG'),'admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_WAFCONFIG'), 'admintools');
 		JToolBarHelper::apply();
 		JToolBarHelper::save();
-		JToolBarHelper::back('JTOOLBAR_BACK','index.php?option=com_admintools&view=waf');
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools&view=waf');
 	}
 
 	public function onWafexceptionsBrowse()
@@ -82,7 +97,7 @@ class AdmintoolsToolbar extends FOFToolbar
 		parent::onBrowse();
 		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_WAFEXCEPTIONS'), 'admintools');
 		JToolBarHelper::divider();
-		JToolBarHelper::back('JTOOLBAR_BACK','index.php?option=com_admintools&view=waf');
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools&view=waf');
 	}
 
 	public function onWafexceptionsAdd()
@@ -98,13 +113,16 @@ class AdmintoolsToolbar extends FOFToolbar
 
 	public function onIpwlsBrowse()
 	{
-		if($this->perms->delete) {
+		if ($this->perms->delete)
+		{
 			JToolBarHelper::deleteList();
 		}
-		if($this->perms->edit) {
+		if ($this->perms->edit)
+		{
 			JToolBarHelper::editList();
 		}
-		if($this->perms->create) {
+		if ($this->perms->create)
+		{
 			JToolBarHelper::addNew();
 		}
 
@@ -112,7 +130,7 @@ class AdmintoolsToolbar extends FOFToolbar
 
 		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_IPWL'), 'admintools');
 		JToolBarHelper::divider();
-		JToolBarHelper::back('JTOOLBAR_BACK','index.php?option=com_admintools&view=waf');
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools&view=waf');
 	}
 
 	public function onIpwlsAdd()
@@ -121,19 +139,23 @@ class AdmintoolsToolbar extends FOFToolbar
 		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_IPWL_EDIT'), 'admintools');
 	}
 
-	public function onIpwlsEdit() {
+	public function onIpwlsEdit()
+	{
 		$this->onIpwlsAdd();
 	}
 
 	public function onIpblsBrowse()
 	{
-		if($this->perms->delete) {
+		if ($this->perms->delete)
+		{
 			JToolBarHelper::deleteList();
 		}
-		if($this->perms->edit) {
+		if ($this->perms->edit)
+		{
 			JToolBarHelper::editList();
 		}
-		if($this->perms->create) {
+		if ($this->perms->create)
+		{
 			JToolBarHelper::addNew();
 		}
 
@@ -141,7 +163,7 @@ class AdmintoolsToolbar extends FOFToolbar
 
 		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_IPBL'), 'admintools');
 		JToolBarHelper::divider();
-		JToolBarHelper::back('JTOOLBAR_BACK','index.php?option=com_admintools&view=waf');
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools&view=waf');
 	}
 
 	public function onIpblsAdd()
@@ -157,13 +179,16 @@ class AdmintoolsToolbar extends FOFToolbar
 
 	public function onBadwordsBrowse()
 	{
-		if($this->perms->delete) {
+		if ($this->perms->delete)
+		{
 			JToolBarHelper::deleteList();
 		}
-		if($this->perms->edit) {
+		if ($this->perms->edit)
+		{
 			JToolBarHelper::editList();
 		}
-		if($this->perms->create) {
+		if ($this->perms->create)
+		{
 			JToolBarHelper::addNew();
 		}
 
@@ -171,7 +196,7 @@ class AdmintoolsToolbar extends FOFToolbar
 
 		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_BADWORDS'), 'admintools');
 		JToolBarHelper::divider();
-		JToolBarHelper::back('JTOOLBAR_BACK','index.php?option=com_admintools&view=waf');
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools&view=waf');
 	}
 
 	public function onBadwordsAdd()
@@ -190,13 +215,14 @@ class AdmintoolsToolbar extends FOFToolbar
 		JToolBarHelper::save();
 		JToolBarHelper::cancel();
 
-		$subtitle_key = 'ADMINTOOLS_TITLE_'.strtoupper($this->input->getCmd('view','cpanel'));
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DASHBOARD').' &ndash; <small>'.JText::_($subtitle_key).'</small>','admintools');
+		$subtitle_key = 'ADMINTOOLS_TITLE_' . strtoupper($this->input->getCmd('view', 'cpanel'));
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DASHBOARD') . ' &ndash; <small>' . JText::_($subtitle_key) . '</small>', 'admintools');
 	}
 
 	public function onLogsBrowse()
 	{
-		if($this->perms->delete) {
+		if ($this->perms->delete)
+		{
 			JToolBarHelper::deleteList();
 		}
 
@@ -209,7 +235,8 @@ class AdmintoolsToolbar extends FOFToolbar
 
 	public function onIpautobansBrowse()
 	{
-		if($this->perms->delete) {
+		if ($this->perms->delete)
+		{
 			JToolBarHelper::deleteList();
 		}
 
@@ -220,29 +247,43 @@ class AdmintoolsToolbar extends FOFToolbar
 		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools&view=waf');
 	}
 
+	public function onIpautobanhistoriesBrowse()
+	{
+		if ($this->perms->delete)
+		{
+			JToolBarHelper::deleteList();
+		}
+
+		$this->renderSubmenu();
+
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_IPAUTOBANHISTORY'), 'admintools');
+		JToolBarHelper::divider();
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools&view=waf');
+	}
+
 	public function onDbprefixesBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DBPREFIX'),'admintools');
-		JToolBarHelper::back('JTOOLBAR_BACK','index.php?option=com_admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DBPREFIX'), 'admintools');
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
 	}
 
 	public function onAdminusersBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_ADMINUSER'),'admintools');
-		JToolBarHelper::back('JTOOLBAR_BACK','index.php?option=com_admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_ADMINUSER'), 'admintools');
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
 	}
 
 	public function onFixpermsconfigsBrowse()
 	{
-		$subtitle_key = 'ADMINTOOLS_TITLE_'.strtoupper($this->input->getCmd('view','cpanel'));
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DASHBOARD').' &ndash; <small>'.JText::_($subtitle_key).'</small>','admintools');
+		$subtitle_key = 'ADMINTOOLS_TITLE_' . strtoupper($this->input->getCmd('view', 'cpanel'));
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DASHBOARD') . ' &ndash; <small>' . JText::_($subtitle_key) . '</small>', 'admintools');
 
-		JToolBarHelper::back('JTOOLBAR_BACK','index.php?option=com_admintools');
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
 	}
 
 	public function onFixpermsBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_FIXPERMS'),'admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_FIXPERMS'), 'admintools');
 	}
 
 	public function onFixpermsRun()
@@ -252,16 +293,16 @@ class AdmintoolsToolbar extends FOFToolbar
 
 	public function onSeoandlinksBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_SEOANDLINK'),'admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_SEOANDLINK'), 'admintools');
 
 		JToolBarHelper::apply();
 		JToolBarHelper::save();
-		JToolBarHelper::back('JTOOLBAR_BACK','index.php?option=com_admintools');
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
 	}
 
 	public function onCleantmpsBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_CLEANTMP'),'admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_CLEANTMP'), 'admintools');
 	}
 
 	public function onCleantmpsRun()
@@ -271,31 +312,31 @@ class AdmintoolsToolbar extends FOFToolbar
 
 	public function onPostsetupsBrowse()
 	{
-		JToolBarHelper::title(JText::_('COM_ADMINTOOLS').': <small>'.JText::_('COM_ADMINTOOLS_POSTSETUP_TITLE').'</small>','admintools');
+		JToolBarHelper::title(JText::_('COM_ADMINTOOLS') . ': <small>' . JText::_('COM_ADMINTOOLS_POSTSETUP_TITLE') . '</small>', 'admintools');
 	}
 
 	public function onDbchcolsBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DBCHCOL'),'admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DBCHCOL'), 'admintools');
 		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
 	}
 
 	public function onDbtools()
 	{
 		// Set the toolbar title
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DBTOOLS'),'admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DBTOOLS'), 'admintools');
 	}
 
 	public function onRedirsBrowse()
 	{
 		parent::onBrowse();
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_REDIRS'),'admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_REDIRS'), 'admintools');
 	}
 
 	public function onRedirsAdd()
 	{
 		parent::onAdd();
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_REDIRS_EDIT'),'admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_REDIRS_EDIT'), 'admintools');
 	}
 
 	public function onRedirsEdit()
@@ -305,13 +346,13 @@ class AdmintoolsToolbar extends FOFToolbar
 
 	public function onAclsBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DASHBOARD').' &ndash; <small>'.JText::_('ADMINTOOLS_TITLE_ACL').'</small>','admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_DASHBOARD') . ' &ndash; <small>' . JText::_('ADMINTOOLS_TITLE_ACL') . '</small>', 'admintools');
 		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
 	}
 
 	public function onScannersBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_SCANNER'),'admintools');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_SCANNER'), 'admintools');
 		JToolBarHelper::apply();
 		JToolBarHelper::save();
 		JToolBarHelper::divider();
@@ -321,20 +362,25 @@ class AdmintoolsToolbar extends FOFToolbar
 	public function onScansBrowse()
 	{
 		// Set toolbar title
-		$subtitle_key = $this->input->getCmd('option','com_foobar').'_TITLE_'.strtoupper($this->input->getCmd('view','cpanel'));
-		JToolBarHelper::title(JText::_( $this->input->getCmd('option','com_foobar')).' &ndash; <small>'.JText::_($subtitle_key).'</small>', str_replace('com_', '', $this->input->getCmd('option','com_foobar')));
+		$subtitle_key = $this->input->getCmd('option', 'com_foobar') . '_TITLE_' . strtoupper($this->input->getCmd('view', 'cpanel'));
+		JToolBarHelper::title(JText::_($this->input->getCmd('option', 'com_foobar')) . ' &ndash; <small>' . JText::_($subtitle_key) . '</small>', str_replace('com_', '', $this->input->getCmd('option', 'com_foobar')));
 
-		$canScan = JFactory::getUser()->authorise('core.manage','com_admintools');
+		$canScan = JFactory::getUser()->authorise('core.manage', 'com_admintools');
 
-		if($canScan) {
+		if ($canScan)
+		{
 			$bar = JToolBar::getInstance('toolbar');
 			$icon = version_compare(JVERSION, '3.0', 'lt') ? 'scan' : 'play';
 			$bar->appendButton('Link', $icon, JText::_('COM_ADMINTOOLS_MSG_SCANS_SCANNOW'), 'javascript:startScan()');
+
+            $iconPurge = version_compare(JVERSION, '3.0', 'lt') ? 'purge' : 'trash';
+            $bar->appendButton('Link', $iconPurge, JText::_('COM_ADMINTOOLS_MSG_SCANS_PURGE'), 'index.php?option=com_admintools&view=scans&task=purge');
 			JToolBarHelper::divider();
 		}
 
 		// Add toolbar buttons
-		if($this->perms->delete) {
+		if ($this->perms->delete)
+		{
 			JToolBarHelper::deleteList();
 		}
 
@@ -348,11 +394,11 @@ class AdmintoolsToolbar extends FOFToolbar
 	{
 		$scan_id = $this->input->getInt('scan_id', 0);
 
-		$subtitle_key = $this->input->getCmd('option','com_foobar').'_TITLE_'.strtoupper($this->input->getCmd('view','cpanel'));
-		JToolBarHelper::title(JText::_( $this->input->getCmd('option','com_foobar')).' &ndash; <small>'.JText::sprintf($subtitle_key, $scan_id).'</small>', str_replace('com_', '', $this->input->getCmd('option','com_foobar')));
+		$subtitle_key = $this->input->getCmd('option', 'com_foobar') . '_TITLE_' . strtoupper($this->input->getCmd('view', 'cpanel'));
+		JToolBarHelper::title(JText::_($this->input->getCmd('option', 'com_foobar')) . ' &ndash; <small>' . JText::sprintf($subtitle_key, $scan_id) . '</small>', str_replace('com_', '', $this->input->getCmd('option', 'com_foobar')));
 
-		JToolBarHelper::publishList('publish','COM_ADMINTOOLS_LBL_SCANALERTS_MARKSAFE');
-		JToolBarHelper::unpublishList('unpublish','COM_ADMINTOOLS_LBL_SCANALERTS_MARKUNSAFE');
+		JToolBarHelper::publishList('publish', 'COM_ADMINTOOLS_LBL_SCANALERTS_MARKSAFE');
+		JToolBarHelper::unpublishList('unpublish', 'COM_ADMINTOOLS_LBL_SCANALERTS_MARKUNSAFE');
 
 		JToolBarHelper::divider();
 		$bar = JToolBar::getInstance('toolbar');
@@ -373,7 +419,34 @@ class AdmintoolsToolbar extends FOFToolbar
 
 	public function onTwofactorsBrowse()
 	{
-		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_TWOFACTOR'),'admintools');
-		JToolBarHelper::back('JTOOLBAR_BACK','index.php?option=com_admintools&view=waf');
+		JToolBarHelper::title(JText::_('ADMINTOOLS_TITLE_TWOFACTOR'), 'admintools');
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools&view=waf');
+	}
+
+	public function onWaftemplatesBrowse()
+	{
+		parent::onBrowse();
+		JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools&view=waf');
+	}
+
+    public function onImportexportsExport()
+    {
+        JToolbarHelper::title(JText::_('ATOOLS_TITLE_EXPORT_SETTINGS'), 'admintools');
+
+        JToolbarHelper::apply('doexport', JText::_('ATOOLS_TITLE_EXPORT_SETTINGS'));
+        JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
+    }
+
+    public function onImportexportsImport()
+    {
+        JToolbarHelper::title(JText::_('ATOOLS_TITLE_IMPORT_SETTINGS'), 'admintools');
+
+        JToolbarHelper::apply('doimport', JText::_('ATOOLS_TITLE_IMPORT_SETTINGS'));
+        JToolBarHelper::back('JTOOLBAR_BACK', 'index.php?option=com_admintools');
+    }
+
+	public function onCheckfilesShow()
+	{
+		JToolbarHelper::title(JText::_('COM_ADMINTOOLS_CHECKFILE'), 'admintools');
 	}
 }

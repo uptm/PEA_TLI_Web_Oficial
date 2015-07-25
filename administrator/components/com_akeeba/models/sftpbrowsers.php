@@ -10,7 +10,7 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
-class AkeebaModelSftpbrowsers extends FOFModel
+class AkeebaModelSftpbrowsers extends F0FModel
 {
 	/** @var string The SFTP server hostname */
 	public $host = '';
@@ -39,7 +39,7 @@ class AkeebaModelSftpbrowsers extends FOFModel
 		// Parse directory to parts
 		$parsed_dir = trim($dir,'/');
 		$this->parts = empty($parsed_dir) ? array() : explode('/', $parsed_dir);
-		
+
 		// Find the path to the parent directory
 		if(!empty($parts)) {
 			$copy_of_parts = $parts;
@@ -145,7 +145,7 @@ class AkeebaModelSftpbrowsers extends FOFModel
 	public function doBrowse()
 	{
 		$list = $this->getListing();
-		
+
 		$response_array = array(
 			'error'			=> $this->getError(),
 			'list'			=> $list,
@@ -153,7 +153,7 @@ class AkeebaModelSftpbrowsers extends FOFModel
 			'directory'		=> $this->directory,
 			'parent'		=> $this->parent_directory
 		);
-		
+
 		return $response_array;
 	}
 }

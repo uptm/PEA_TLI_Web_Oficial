@@ -14,7 +14,7 @@ defined('_JEXEC') or die();
  * MVC View for Database Table filters
  *
  */
-class AkeebaViewDbef extends FOFViewHtml
+class AkeebaViewDbef extends F0FViewHtml
 {
 	public function onBrowse($tpl = null)
 	{
@@ -23,7 +23,7 @@ class AkeebaViewDbef extends FOFViewHtml
 		$task = $model->getState('browse_task', 'normal');
 
 		// Add custom submenus
-		$toolbar = FOFToolbar::getAnInstance($this->input->get('option','com_foobar','cmd'), $this->config);
+		$toolbar = F0FToolbar::getAnInstance($this->input->get('option','com_foobar','cmd'), $this->config);
 		$toolbar->appendLink(
 			JText::_('FILTERS_LABEL_NORMALVIEW'),
 			JURI::base().'index.php?option=com_akeeba&view=dbef&task=normal',

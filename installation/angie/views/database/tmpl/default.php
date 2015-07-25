@@ -23,7 +23,7 @@ ENDSRIPT
 );
 
 echo $this->loadAnyTemplate('steps/buttons');
-echo $this->loadAnyTemplate('steps/steps', array('helpurl' => 'https://www.akeebabackup.com/documentation/quick-start-guide/angie-database.html'));
+echo $this->loadAnyTemplate('steps/steps', array('helpurl' => 'https://www.akeebabackup.com/documentation/solo/angie-installers.html#angie-common-database'));
 ?>
 
 <div class="modal hide fade" id="restoration-dialog">
@@ -183,6 +183,16 @@ echo $this->loadAnyTemplate('steps/steps', array('helpurl' => 'https://www.akeeb
 						<?php echo AText::_('DATABASE_LBL_FOREIGNKEY') ?>
 						<span class="help-tooltip icon-question-sign" data-toggle="tooltip" data-html="true" data-placement="top"
 						  title="<?php echo AText::_('DATABASE_LBL_FOREIGNKEY_HELP') ?>"></span>
+					</label>
+				</div>
+			</div>
+			<div class="control-group">
+				<div class="controls">
+					<label class="checkbox help-tooltip" for="noautovalue">
+						<input type="checkbox" id="noautovalue" <?php echo $this->db->noautovalue ? 'checked="checked"' : '' ?> />
+						<?php echo AText::_('DATABASE_LBL_NOAUTOVALUE') ?>
+						<span class="help-tooltip icon-question-sign" data-toggle="tooltip" data-html="true" data-placement="top"
+						  title="<?php echo AText::_('DATABASE_LBL_NOAUTOVALUE_HELP') ?>"></span>
 					</label>
 				</div>
 			</div>

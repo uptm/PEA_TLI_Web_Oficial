@@ -95,7 +95,7 @@ class AngieModelOffsitedirs extends AModel
 
         if(!is_dir($dst))
         {
-            if(!@mkdir($dst, '0755'))
+            if(!@mkdir($dst, 0755))
             {
                 closedir($dir);
 

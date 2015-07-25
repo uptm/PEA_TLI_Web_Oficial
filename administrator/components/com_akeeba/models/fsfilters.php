@@ -14,7 +14,7 @@ defined('_JEXEC') or die();
  * Filesystem Filter model
  *
  */
-class AkeebaModelFsfilters extends FOFModel
+class AkeebaModelFsfilters extends F0FModel
 {
 	/**
 	 * Returns a listing of contained directories and files, as well as their
@@ -403,7 +403,7 @@ class AkeebaModelFsfilters extends FOFModel
 		$filters->save();
 		return $this->make_listing($root);
 	}
-	
+
 	public function doAjax()
 	{
 		$action = $this->getState('action');
@@ -445,5 +445,5 @@ class AkeebaModelFsfilters extends FOFModel
 		}
 
 		return $ret_array;
-	}	
+	}
 }

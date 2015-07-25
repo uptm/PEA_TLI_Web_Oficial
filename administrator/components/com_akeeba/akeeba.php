@@ -30,11 +30,11 @@ if(!version_compare($version, '5.3.0', '>='))
 
 JLoader::import('joomla.application.component.model');
 
-// Load FOF
-include_once JPATH_SITE.'/libraries/fof/include.php';
-if (!defined('FOF_INCLUDED') || !class_exists('FOFForm', true))
+// Load F0F
+include_once JPATH_SITE.'/libraries/f0f/include.php';
+if (!defined('F0F_INCLUDED') || !class_exists('F0FForm', true))
 {
 	JError::raiseError ('500', 'Your Akeeba Backup installation is broken; please re-install. Alternatively, extract the installation archive and copy the fof directory inside your site\'s libraries directory.');
 }
 
-FOFDispatcher::getTmpInstance('com_akeeba')->dispatch();
+F0FDispatcher::getTmpInstance('com_akeeba')->dispatch();

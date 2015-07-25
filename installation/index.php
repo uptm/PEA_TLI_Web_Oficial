@@ -16,7 +16,11 @@ if(__DIR__ == '__DIR__')
 
 // Define ourselves as a parent file
 define('_AKEEBA', 1);
+// Required by Joomla! files
 define('_JEXEC', 1);
+// Required by the Joomla! CMS version file (mind. blown!)
+define('JPATH_PLATFORM', 1);
+// Required for lang strings. This is what happens when you use Joomla! core code.
 define('_QQ_', '&quot;');
 
 // Debug

@@ -42,9 +42,19 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	/** @var   array  An array of open file pointers */
 	private $filePointers = array();
 
+	/** @var   array  An array of the last open files for writing and their last written to offsets */
+	private $fileOffsets = array();
+
+	/** @var resource File pointer to the archive being currently written to */
+	protected $fp = null;
+
+	/** @var resource File pointer to the archive's central directory file (for ZIP) */
+	protected $cdfp = null;
+
 	/**
 	 * Common code which gets called on instance creation or wake-up (unserialization)
 	 *
+     * @codeCoverageIgnore
 	 * @return  void
 	 */
 	protected function __bootstrap_code()
@@ -61,6 +71,7 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	/**
 	 * Public constructor
 	 *
+     * @codeCoverageIgnore
 	 * @return  AEAbstractArchiver
 	 */
 	public function __construct()
@@ -71,6 +82,7 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	/**
 	 * Wakeup (unserialization) function
 	 *
+     * @codeCoverageIgnore
 	 * @return  void
 	 */
 	final public function __wakeup()
@@ -81,11 +93,14 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	/**
 	 * Release file pointers when the object is being serialized
 	 *
+     * @codeCoverageIgnore
 	 * @return  void
 	 */
 	public function _onSerialize()
 	{
 		$this->_closeAllFiles();
+		$this->fp = null;
+		$this->cdfp = null;
 
 		parent::_onSerialize();
 	}
@@ -93,11 +108,14 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	/**
 	 * Release file pointers when the object is being destroyed
 	 *
+     * @codeCoverageIgnore
 	 * @return  void
 	 */
 	public function __destruct()
 	{
 		$this->_closeAllFiles();
+		$this->fp = null;
+		$this->cdfp = null;
 	}
 
 	/**
@@ -105,9 +123,10 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	 *
 	 * @param   string  $error  The error message
 	 *
+     * @codeCoverageIgnore
 	 * @return  void
 	 *
-	 * @see  AEAbstractObject#setError($error)
+	 * @see  AEAbstractObject::setError($error)
 	 */
 	public function setError($error)
 	{
@@ -120,9 +139,10 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	 *
 	 * @param   string  $warning  The warning message
 	 *
+     * @codeCoverageIgnore
 	 * @return  void
 	 *
-	 * @see  AEAbstractObject#setWarning($warning)
+	 * @see  AEAbstractObject::setWarning($warning)
 	 */
 	public function setWarning($warning)
 	{
@@ -144,6 +164,7 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 		$aComment = str_replace("\n", " ", $aComment); // Replace newlines with spaces
 		$aComment = str_replace("<br>", "\n", $aComment); // Replace HTML4 <br> with single newlines
 		$aComment = str_replace("<br/>", "\n", $aComment); // Replace HTML4 <br> with single newlines
+		$aComment = str_replace("<br />", "\n", $aComment); // Replace HTML <br /> with single newlines
 		$aComment = str_replace("</p>", "\n\n", $aComment); // Replace paragraph endings with double newlines
 		$aComment = str_replace("<b>", "*", $aComment); // Replace bold with star notation
 		$aComment = str_replace("</b>", "*", $aComment); // Replace bold with star notation
@@ -171,11 +192,13 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 			return false;
 		}
 
+        // @codeCoverageIgnoreStart
 		if (function_exists('mb_internal_encoding'))
 		{
 			$mb_encoding = mb_internal_encoding();
 			mb_internal_encoding('ISO-8859-1');
 		}
+        // @codeCoverageIgnoreEnd
 
 		foreach ($fileList as $file)
 		{
@@ -188,10 +211,12 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 			 * /**/
 		}
 
+        // @codeCoverageIgnoreStart
 		if (function_exists('mb_internal_encoding'))
 		{
 			mb_internal_encoding($mb_encoding);
 		}
+        // @codeCoverageIgnoreEnd
 
 		return true;
 	}
@@ -330,7 +355,20 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	{
 		if (!array_key_exists($file, $this->filePointers))
 		{
+			//AEUtilLogger::WriteLog(_AE_LOG_DEBUG, "Opening backup archive $file with mode $mode");
 			$this->filePointers[$file] = @fopen($file, $mode);
+
+			// If we open a file for append we have to seek to the correct offset
+			if (substr($mode, 0, 1) == 'a')
+			{
+				if (isset($this->fileOffsets[$file]))
+				{
+					//AEUtilLogger::WriteLog(_AE_LOG_DEBUG, "Truncating to " . $this->fileOffsets[$file]);
+					@ftruncate($this->filePointers[$file], $this->fileOffsets[$file]);
+				}
+
+				fseek($this->filePointers[$file], 0, SEEK_END);
+			}
 		}
 
 		return $this->filePointers[$file];
@@ -339,23 +377,22 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	/**
 	 * Closes an already open file
 	 *
-	 * @param   string  $file  The name of the file
+	 * @param   resource  $fp  The file pointer to close
 	 *
 	 * @return  boolean
 	 */
-	protected final function _fclose($file)
+	protected final function _fclose(&$fp)
 	{
-		if (array_key_exists($file, $this->filePointers))
-		{
-			$fp = $this->filePointers[$file];
-			$result = @fclose($fp);
+		$offset = array_search($fp, $this->filePointers, true);
 
-			unset($this->filePointers[$file]);
-		}
-		else
+		$result = @fclose($fp);
+
+		if ($offset !== false)
 		{
-			$result = false;
+			unset($this->filePointers[$offset]);
 		}
+
+		$fp = null;
 
 		return $result;
 	}
@@ -389,6 +426,15 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	 */
 	protected final function _fwrite($fp, $data, $p_len = null)
 	{
+		static $lastFp = null;
+		static $filename = null;
+
+		if ($fp !== $lastFp)
+		{
+			$lastFp = $fp;
+			$filename = array_search($fp, $this->filePointers, true);
+		}
+
 		$len = is_null($p_len) ? (function_exists('mb_strlen') ? mb_strlen($data, '8bit') : strlen($data)) : $p_len;
 		$ret = fwrite($fp, $data, $len);
 
@@ -399,7 +445,25 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 			return false;
 		}
 
+		if ($filename !== false)
+		{
+			$this->fileOffsets[$filename] = @ftell($fp);
+		}
+
 		return true;
+	}
+
+	/**
+	 * Removes a file path from the list of resumable offsets
+	 *
+	 * @param $filename
+	 */
+	protected function _removeFromOffsetsList($filename)
+	{
+		if (isset($this->fileOffsets[$filename]))
+		{
+			unset($this->fileOffsets[$filename]);
+		}
 	}
 
 	/**
@@ -508,6 +572,8 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	 *
 	 * Copied verbatim from pclZip library
 	 *
+     * @codeCoverageIgnore
+     *
 	 * @param   string  $p_dir   Source tree
 	 * @param   string  $p_path  Check if this is part of $p_dir
 	 *
@@ -592,6 +658,8 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	 * of the class. It actually extracts the source JPA in memory and instructs the
 	 * class to include each extracted file.
 	 *
+     * @codeCoverageIgnore
+     *
 	 * @param   integer  $index  The index in the source JPA archive's list currently in use
 	 * @param   integer  $offset The source JPA archive's offset to use
 	 *
@@ -791,6 +859,8 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	 * "skip"     => if this is not a file, just skip it...
 	 * "done"     => No more files left in archive
 	 *
+     * @codeCoverageIgnore
+     *
 	 * @param   integer  $offset  The absolute data offset from archive's header
 	 *
 	 * @return  array  See description for more information
@@ -893,6 +963,8 @@ abstract class AEAbstractArchiver extends AEAbstractObject
 	/**
 	 * Skips over the JPA header entry and returns the offset file data starts from
 	 *
+     * @codeCoverageIgnore
+     *
 	 * @return  boolean|integer  False on failure, offset otherwise
 	 */
 	private final function _xformReadHeader()

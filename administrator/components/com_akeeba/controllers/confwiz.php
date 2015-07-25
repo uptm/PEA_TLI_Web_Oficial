@@ -29,7 +29,7 @@ class AkeebaControllerConfwiz extends AkeebaControllerDefault
 	public function ajax()
 	{
 		$act = $this->input->get('act', '', 'cmd');
-		$model = FOFModel::getAnInstance('Confwiz', 'AkeebaModel');
+		$model = F0FModel::getAnInstance('Confwiz', 'AkeebaModel');
 		$model->setState('act', $act);
 		$ret = $model->runAjax();
 

@@ -14,7 +14,7 @@ defined('_JEXEC') or die();
  * The Backup Administrator class
  *
  */
-class AkeebaControllerDefault extends FOFController
+class AkeebaControllerDefault extends F0FController
 {
 	/**
 	 * Akeeba Backup-specific ACL checks. All views not listed here are

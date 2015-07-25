@@ -1,47 +1,59 @@
 <?php
 /**
- *  @package AdminTools
- *  @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
- *  @license GNU General Public License version 3, or later
- *  @version $Id$
+ * @package   AdminTools
+ * @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
+ * @license   GNU General Public License version 3, or later
+ * @version   $Id$
  */
 
 // Protect from unauthorized access
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
-class AdmintoolsControllerDbtools extends FOFController
+class AdmintoolsControllerDbtools extends F0FController
 {
-	public function __construct($config = array()) {
+	public function __construct($config = array())
+	{
 		parent::__construct($config);
 
 		$this->modelName = 'dbtools';
 	}
 
-	public function execute($task) {
-		if(!in_array($task, array('purgesessions'))) $task = 'browse';
+	public function execute($task)
+	{
+		if (!in_array($task, array('purgesessions')))
+		{
+			$task = 'browse';
+		}
 		parent::execute($task);
 	}
 
-	public function browse() {
+	public function browse()
+	{
 		$model = $this->getThisModel();
-		$from = $this->input->getString('from',null);
+		$from = $this->input->getString('from', null);
 
 		$tables = (array)$model->findTables();
 		$lastTable = $model->repairAndOptimise($from);
-		if(empty($lastTable))
+		if (empty($lastTable))
 		{
 			$percent = 100;
 		}
 		else
 		{
 			$lastTableID = array_search($lastTable, $tables);
-			$percent = round(100 * ($lastTableID+1) / count($tables));
-			if($percent < 1) $percent = 1;
-			if($percent > 100) $percent = 100;
+			$percent = round(100 * ($lastTableID + 1) / count($tables));
+			if ($percent < 1)
+			{
+				$percent = 1;
+			}
+			if ($percent > 100)
+			{
+				$percent = 100;
+			}
 		}
 
-		$this->getThisView()->assign('table',		$lastTable);
-		$this->getThisView()->assign('percent',		$percent);
+		$this->getThisView()->table = $lastTable;
+		$this->getThisView()->percent = $percent;
 
 		$model->setState('lasttable', $lastTable);
 		$model->setState('percent', $percent);
@@ -53,7 +65,7 @@ class AdmintoolsControllerDbtools extends FOFController
 	{
 		$model = $this->getThisModel();
 		$model->purgeSessions();
-		$this->setRedirect('index.php?option=com_admintools',JText::_('ATOOLS_LBL_PURGECOMPLETE'));
+		$this->setRedirect('index.php?option=com_admintools', JText::_('ATOOLS_LBL_PURGECOMPLETE'));
 	}
 
 	protected function onBeforeBrowse()

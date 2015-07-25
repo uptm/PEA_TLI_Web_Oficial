@@ -48,6 +48,7 @@ class AngieControllerDbrestore extends AController
 		try
 		{
 			$restoreEngine = ADatabaseRestore::getInstance($key, $data);
+			$restoreEngine->removeInformationFromStorage();
 			$result = array(
 				'percent'	=> 0,
 				'restored'	=> 0,

@@ -15,7 +15,7 @@
 			component="com_akeeba"
 			section="component" />
 	</fieldset>
-	
+
 	<fieldset name="frontend" label="CONFIG_FRONTEND_HEADER_LABEL" description="CONFIG_FRONTEND_HEADER_DESC">
 
 		<field name="frontend_enable" type="radio" default="0"
@@ -96,8 +96,35 @@
 			<option value="0">JNo</option>
 			<option value="1">JYes</option>
 		</field>
+
+    <field name="autoupdateCli" type="list" default="1"
+           label="CONFIG_AUTOUPDATE_SETTINGS_LABEL"
+           description="CONFIG_AUTOUPDATE_SETTINGS_DESC">
+      <option value="1">CONFIG_AUTOUPDATE_NOTIFY_UPDATE</option>
+      <option value="2">CONFIG_AUTOUPDATE_NOTIFY</option>
+      <option value="3">CONFIG_AUTOUPDATE_UPDATE</option>
+    </field>
+
+    <field name="notificationFreq" type="text" default="1"
+           label="CONFIG_NOTIFICATION_FREQ_LABEL" />
+
+    <field name="notificationTime" type="list" default="day"
+           label="CONFIG_NOTIFICATION_TIME_LABEL" >
+      <option value="min">CONFIG_NOTIFICATION_TIME_MIN</option>
+      <option value="hour">CONFIG_NOTIFICATION_TIME_HOUR</option>
+      <option value="day">CONFIG_NOTIFICATION_TIME_DAY</option>
+    </field>
+
+    <field name="notificationEmail" type="text" default=""
+           label="CONFIG_NOTIFICATION_EMAIL_LABEL"
+           description="CONFIG_NOTIFICATION_EMAIL_DESC"/>
+
+    <field name="stats_enabled" type="list" default="1" label="CONFIG_USAGESTATS_LABEL" description="CONFIG_USAGESTATS_DESC">
+      <option value="0">JNO</option>
+      <option value="1">JYES</option>
+    </field>
 	</fieldset>
-	
+
 	<fieldset name="security" label="CONFIG_SECURITY_HEADER_LABEL" description="CONFIG_SECURITY_HEADER_DESC">
 		<field name="useencryption" type="radio" default="1"
 			label="CONFIG_SECURITY_USEENCRYPTION_LABEL"
@@ -106,5 +133,12 @@
 			<option value="0">JNo</option>
 			<option value="1">JYes</option>
 		</field>
-	</fieldset>	
+	</fieldset>
+
+    <fieldset name="backend" label="CONFIG_BACKEND_HEADER_LABEL" description="CONFIG_BACKEND_HEADER_DESC">
+        <field name="dateformat" type="text" default="" size="30"
+               label="COM_AKEEBA_CONFIG_DATEFORMAT_LABEL"
+               description="COM_AKEEBA_CONFIG_DATEFORMAT_DESC" />
+    </fieldset>
+
 </config>

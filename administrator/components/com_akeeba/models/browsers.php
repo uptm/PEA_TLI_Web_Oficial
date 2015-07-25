@@ -9,22 +9,22 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
-class AkeebaModelBrowsers extends FOFModel
+class AkeebaModelBrowsers extends F0FModel
 {
 	function makeListing()
 	{
 		JLoader::import('joomla.filesystem.folder');
 		JLoader::import('joomla.filesystem.path');
-		
+
 		// Get the folder to browse
 		$folder = $this->getState('folder', '');
 		$processfolder = $this->getState('processfolder', 0);
-		
+
 		if(empty($folder))
 		{
 			$folder = JPATH_SITE;
 		}
-		
+
 		$stock_dirs = AEPlatform::getInstance()->get_stock_directories();
 		arsort($stock_dirs);
 
@@ -112,7 +112,7 @@ class AkeebaModelBrowsers extends FOFModel
 			$parent = $folder;
 			$breadcrumbs = array();
 		}
-		
+
 		$this->setState('folder',					$folder);
 		$this->setState('folder_raw',				$folder_raw);
 		$this->setState('parent',					$parent);

@@ -13,7 +13,7 @@ defined('_JEXEC') or die();
  * MVC View for Profiles management
  *
  */
-class AkeebaViewProfiles extends FOFViewHtml
+class AkeebaViewProfiles extends F0FViewHtml
 {
 	function display($tpl = null)
 	{
@@ -43,7 +43,7 @@ class AkeebaViewProfiles extends FOFViewHtml
 		$model->setId($profileid);
 		$profile_data = $model->getProfile();
 		$this->profilename = $profile_data->description;
-		
+
 		return parent::onBrowse($tpl);
 	}
 }

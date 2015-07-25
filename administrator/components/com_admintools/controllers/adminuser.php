@@ -1,27 +1,32 @@
 <?php
 /**
- *  @package AdminTools
- *  @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
- *  @license GNU General Public License version 3, or later
- *  @version $Id$
+ * @package   AdminTools
+ * @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
+ * @license   GNU General Public License version 3, or later
+ * @version   $Id$
  */
 
 // Protect from unauthorized access
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
 /**
  * A feature to change the site's database prefix - Controller
  */
-class AdmintoolsControllerAdminuser extends FOFController
+class AdmintoolsControllerAdminuser extends F0FController
 {
-	public function __construct($config = array()) {
+	public function __construct($config = array())
+	{
 		parent::__construct($config);
 
 		$this->modelName = 'adminuser';
 	}
 
-	public function execute($task) {
-		if(!in_array($task, array('change'))) $task = 'browse';
+	public function execute($task)
+	{
+		if (!in_array($task, array('change')))
+		{
+			$task = 'browse';
+		}
 		parent::execute($task);
 	}
 
@@ -35,14 +40,17 @@ class AdmintoolsControllerAdminuser extends FOFController
 		$prefix = $this->input->getCmd('prefix', null);
 		$isHuman = $this->input->getInt('ishuman', 0);
 
-		if($isHuman == 1) {
+		if ($isHuman == 1)
+		{
 			$model = $this->getThisModel();
 			$model->setState($prefix);
 			$result = $model->swapAccounts();
 
 			$msg = JText::sprintf('ATOOLS_LBL_ADMINUSER_OK');
 			$msgType = 'message';
-		} else {
+		}
+		else
+		{
 			$msg = JText::_('COM_ADMINTOOLS_LBL_COMMON_NOTAHUMAN');
 			$msgType = 'error';
 		}

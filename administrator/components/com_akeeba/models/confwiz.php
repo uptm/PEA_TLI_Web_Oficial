@@ -12,7 +12,7 @@ defined('_JEXEC') or die();
 /**
  * The Configuration Wizard model class
  */
-class AkeebaModelConfwiz extends FOFModel
+class AkeebaModelConfwiz extends F0FModel
 {
 
 	/**

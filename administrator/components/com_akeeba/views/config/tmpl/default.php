@@ -154,10 +154,32 @@ JHtml::_('behavior.modal');
 		akeeba_translations['UI-CONFIG'] = '<?php echo AkeebaHelperEscape::escapeJS(JText::_('CONFIG_UI_CONFIG')) ?>';
 		akeeba_translations['UI-REFRESH'] = '<?php echo AkeebaHelperEscape::escapeJS(JText::_('CONFIG_UI_REFRESH')) ?>';
 
-		// Load the configuration UI data
+		// Load the configuration UI data in a way that doesn't let Safari screw up password fields
 		akeeba_ui_theme_root = '<?php echo $this->mediadir ?>';
 		var data = JSON.parse("<?php echo $this->json; ?>");
-		parse_config_data(data);
+
+		setTimeout(function(){
+			parse_config_data(data);
+
+			// Work around Chrome which blatantly ignores autocomplete=off in the ANGIE password field (FOR CRYING OUT LOUD!)
+			setTimeout('akeeba_restore_configuration_defaults();', 1000);
+
+			// Enable popovers
+			akeeba.jQuery('[rel="popover"]').popover({
+				trigger: 'manual',
+				animate: false,
+				html: true,
+				placement: 'bottom',
+				template: '<div class="popover akeeba-bootstrap-popover" onmouseover="akeeba.jQuery(this).mouseleave(function() {akeeba.jQuery(this).hide(); });"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>'
+			})
+				.click(function(e) {
+					e.preventDefault();
+				})
+				.mouseenter(function(e) {
+					akeeba.jQuery('div.popover').remove();
+					akeeba.jQuery(this).popover('show');
+				});
+		}, 10);
 
 		// Create the dialog
 		$("#dialog").dialog({
@@ -641,25 +663,6 @@ JHtml::_('behavior.modal');
 			li.appendTo('#ak_crumbs');
 		}
 		
-		// Enable popovers
-		akeeba.jQuery('[rel="popover"]').popover({
-			trigger: 'manual',
-			animate: false,
-			html: true,
-			placement: 'bottom',
-			template: '<div class="popover akeeba-bootstrap-popover" onmouseover="akeeba.jQuery(this).mouseleave(function() {akeeba.jQuery(this).hide(); });"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>'
-		})
-		.click(function(e) {
-			e.preventDefault();
-		})
-		.mouseenter(function(e) {
-			akeeba.jQuery('div.popover').remove();
-			akeeba.jQuery(this).popover('show');
-		});
-
-
-
-
 		// FTP browser function
 		akeeba_sftpbrowser_hook = function( callback )
 		{

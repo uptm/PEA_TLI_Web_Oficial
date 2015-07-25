@@ -13,7 +13,7 @@ defined('_JEXEC') or die();
  * Akeeba Backup Configuration view class
  *
  */
-class AkeebaViewSchedule extends FOFViewHtml
+class AkeebaViewSchedule extends F0FViewHtml
 {
 	public function onAdd($tpl = null)
 	{
@@ -22,7 +22,7 @@ class AkeebaViewSchedule extends FOFViewHtml
 		$this->profileid = $profileid;
 
 		// Get profile name
-		$profileName = FOFModel::getTmpInstance('Profiles','AkeebaModel')
+		$profileName = F0FModel::getTmpInstance('Profiles','AkeebaModel')
 			->setId($profileid)
 			->getItem()
 			->description;
@@ -31,7 +31,7 @@ class AkeebaViewSchedule extends FOFViewHtml
 		// Get the CRON paths
 		$this->croninfo  = $this->getModel()->getPaths();
         $this->checkinfo = $this->getModel()->getCheckPaths();
-		
+
 		// Add live help
 		AkeebaHelperIncludes::addHelp('schedule');
 	}

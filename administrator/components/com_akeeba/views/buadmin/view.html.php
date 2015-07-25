@@ -14,7 +14,7 @@ defined('_JEXEC') or die();
  * Akeeba Backup Administrator view class
  *
  */
-class AkeebaViewBuadmin extends FOFViewHtml
+class AkeebaViewBuadmin extends F0FViewHtml
 {
 	protected $lists = null;
 
@@ -48,7 +48,7 @@ class AkeebaViewBuadmin extends FOFViewHtml
 
 		// Add custom submenus
 		if(AKEEBA_PRO) {
-			$toolbar = FOFToolbar::getAnInstance($this->input->get('option','com_foobar','cmd'), $this->config);
+			$toolbar = F0FToolbar::getAnInstance($this->input->get('option','com_foobar','cmd'), $this->config);
 			$toolbar->appendLink(
 				JText::_('BUADMIN_LABEL_BACKUPS'),
 				JURI::base().'index.php?option=com_akeeba&view=buadmin&task=browse',
@@ -71,7 +71,7 @@ class AkeebaViewBuadmin extends FOFViewHtml
 		if(($task == 'default')) {
 			JToolBarHelper::editList('showcomment', JText::_('STATS_LOG_EDITCOMMENT'));
 
-			$pModel = FOFModel::getTmpInstance('Profiles','AkeebaModel');
+			$pModel = F0FModel::getTmpInstance('Profiles','AkeebaModel');
 			$enginesPerPprofile = $pModel->getPostProcessingEnginePerProfile();
 			$this->enginesPerProfile = $enginesPerPprofile;
 		}
@@ -80,7 +80,10 @@ class AkeebaViewBuadmin extends FOFViewHtml
 		// "Show warning first" download button. Joomlantastic!
 		$confirmationText = AkeebaHelperEscape::escapeJS( JText::_('STATS_LOG_DOWNLOAD_CONFIRM'), "'\n" );
 		$baseURI = JURI::base();
-		$js = <<<ENDSCRIPT
+		$js = <<<JS
+
+;// This comment is intentionally put here to prevent badly written plugins from causing a Javascript error
+// due to missing trailing semicolon and/or newline in their code.
 function confirmDownloadButton()
 {
 	var answer = confirm('$confirmationText');
@@ -98,7 +101,7 @@ function confirmDownload(id, part)
 	}
 }
 
-ENDSCRIPT;
+JS;
 
 		$document = JFactory::getDocument();
 		$document->addScriptDeclaration($js);

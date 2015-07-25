@@ -11,7 +11,7 @@ defined('_JEXEC') or die();
 
 defined('AKEEBA_BACKUP_ORIGIN') or define('AKEEBA_BACKUP_ORIGIN','frontend');
 
-class AkeebaControllerCheck extends FOFController
+class AkeebaControllerCheck extends F0FController
 {
 	public function __construct($config = array())
     {
@@ -33,7 +33,7 @@ class AkeebaControllerCheck extends FOFController
 		$this->_checkPermissions();
 
         /** @var AkeebaModelStatistics $model */
-        $model = FOFModel::getTmpInstance('Statistics', 'AkeebaModel');
+        $model = F0FModel::getTmpInstance('Statistics', 'AkeebaModel');
         $model->setInput($this->input);
 
         $result = $model->notifyFailed();

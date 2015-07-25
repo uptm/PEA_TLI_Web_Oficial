@@ -9,7 +9,7 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
-class AkeebaDispatcher extends FOFDispatcher
+class AkeebaDispatcher extends F0FDispatcher
 {
 	public $defaultView = 'backup';
 
@@ -94,7 +94,7 @@ class AkeebaDispatcher extends FOFDispatcher
 		// Look for controllers in the plugins folder
 		$option = $this->input->get('option','com_foobar', 'cmd');
 		$view = $this->input->get('view',$this->defaultView, 'cmd');
-		$c = FOFInflector::singularize($view);
+		$c = F0FInflector::singularize($view);
 		$alt_path = JPATH_SITE.'/components/'.$option.'/plugins/controllers/'.$c.'.php';
 
 		JLoader::import('joomla.filesystem.file');

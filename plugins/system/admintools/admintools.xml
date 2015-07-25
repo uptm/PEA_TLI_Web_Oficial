@@ -6,13 +6,16 @@
 	<authorUrl>http://www.akeebabackup.com</authorUrl>
 	<copyright>Copyright (c)2010 Nicholas K. Dionysopoulos</copyright>
 	<license>GNU General Public License version 3, or later</license>
-	<creationDate>2014-03-10</creationDate>
-	<version>2.6.2</version>
+	<creationDate>2014-10-17</creationDate>
+	<version>3.3.1</version>
 	<description>
 		Handles all the system-wide features provided by Admin Tools Core
 	</description>
 	<files>
 		<filename plugin="admintools">admintools.php</filename>
+		<filename plugin="admintools">autoloader.php</filename>
 		<folder>admintools</folder>
+		<folder>feature</folder>
+		<folder>util</folder>
 	</files>
 </extension>

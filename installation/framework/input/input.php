@@ -15,6 +15,25 @@
 
 defined('_AKEEBA') or die();
 
+/**
+ * Input handling class
+ *
+ * @method 	integer	getInt($name, $default)
+ * @method 	integer	getInteger($name, $default)
+ * @method 	integer	getUint($name, $default)
+ * @method 	float 	getFloat($name, $default)
+ * @method 	float 	getDouble($name, $default)
+ * @method 	boolean getBool($name, $default)
+ * @method 	boolean	getBoolean($name, $default)
+ * @method 	string 	getWord($name, $default)
+ * @method 	string 	getAlnum($name, $default)
+ * @method 	string 	getCmd($name, $default)
+ * @method 	string 	getBase64($name, $default)
+ * @method 	string 	getString($name, $default)
+ * @method 	string 	getHtml($name, $default)
+ * @method 	string 	getPath($name, $default)
+ * @method 	string 	getUsername($name, $default)
+ */
 class AInput implements Serializable, Countable
 {
 	/** @var AFilterInput Filter object to use. */

@@ -112,7 +112,7 @@ class AkeebaControllerConfig extends AkeebaControllerDefault
 	{
 		$model = $this->getThisModel();
 		$model->setState('engine', $this->input->get('engine', '', 'raw'));
-		if($this->input instanceof FOFInput) {
+		if($this->input instanceof F0FInput) {
 			$model->setState('params', $this->input->get('params', array(), 'array', 2));
 		} else {
 			$model->setState('params', $this->input->get('params', array(), 'array', 2));

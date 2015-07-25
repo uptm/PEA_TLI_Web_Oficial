@@ -13,7 +13,7 @@ defined('_JEXEC') or die();
  * The JTable child implementing #__ak_profiles data handling
  *
  */
-class AkeebaTableProfile extends FOFTable
+class AkeebaTableProfile extends F0FTable
 {
 	public function __construct( $table, $key, &$db )
 	{
@@ -35,12 +35,12 @@ class AkeebaTableProfile extends FOFTable
 
 		return true;
 	}
-	
+
 	/**
 	 * onBeforeDelete event - forbids deleting the default backup profile
-	 * 
+	 *
 	 * @param int $oid The ID of the profile to delete
-	 * 
+	 *
 	 * @return boolean True if the deletion is allowed
 	 */
 	protected function onBeforeDelete($oid)

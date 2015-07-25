@@ -13,7 +13,13 @@ ADocument::getInstance()->addScript('angie/js/ajax.js');
 ADocument::getInstance()->addScript('angie/js/finalise.js');
 
 echo $this->loadAnyTemplate('steps/buttons');
-echo $this->loadAnyTemplate('steps/steps', array('helpurl' => 'https://www.akeebabackup.com/documentation/quick-start-guide/angie-finalise.html'));
+echo $this->loadAnyTemplate('steps/steps', array('helpurl' => 'https://www.akeebabackup.com/documentation/solo/angie-installers.html#angie-common-finalise'));
+?>
+<?php
+if(isset($this->extra_warning))
+{
+    echo $this->extra_warning;
+}
 ?>
 
 <?php if ($this->showconfig): ?>

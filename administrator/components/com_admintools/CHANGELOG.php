@@ -1,4 +1,104 @@
 <?php die() ?>
+Admin Tools 3.3.1
+================================================================================
++ Self-check the installation. If files are missing or have been tampered with you will be notified about it.
+# [LOW] Database repair CLI script is not installed
+# [MEDIUM] Logging out of Joomla! 2.5 when using secret URL parameter may raise security exception
+# [HIGH] Missing files in core package leading to incorrect post-setup page under Joomla 2.5
+
+Admin Tools 3.3.0
+================================================================================
++ You can now specify multiple email addresses for the "Email this address on security exceptions" field by separating them with commas
++ You can now specify multiple email addresses for the "Email this address on successful back-end login" field by separating them with commas
++ You can now specify multiple email addresses for the "Email this address on failed administrator login" field by separating them with commas
+- Removed the "Block extensions installer" feature (obsolete). Since Joomla! 1.6 you can use the Extension Installer's Options, Permissions page to determine exactly who has access to the installer, by default only Super Users.
+~ Use Joomla! tabs in Configure WAF page. The last tab will be remembered automatically (by means of a cookie).
+~ Changed the .htaccess files to be compatible with Apache 2.4
+# [HIGH] Fixed fatal error while trying to run Admin Tools plugin under Joomla 2.5
+# [HIGH] Regressions in 3.2.x versions didn't allow some features to work
+# [HIGH] XSSShield would miss some attacks
+# [HIGH] DFIShield couldn't handle Windows-style relative paths
+# [HIGH] Disable editing backend users' properties not working when you use Save & Close to save the back-end user
+# [HIGH] IP white-/black-listing not working with netmask, CIDR ranges and shorthand range notation in PHP 5.5 and 5.6
+# [MEDIUM] Fixed two factor authentication to only display on Joomla! 2.5 and 3.0/3.1
+# [MEDIUM] URL Redirection would not work properly with sites in subdirectories when redirecting to an internal (non-SEF) URL
+
+Admin Tools 3.2.1
+================================================================================
+# [HIGH] System plugin installation package was missing some files
+
+Admin Tools 3.2.0
+================================================================================
++ When using the custom administrator directory and you log out you now MUST use the custom administrator directory (it's no longer remembered)
+~ Refactored System - Admin Tools plugin for performance and better maintainability
+~ Now using Joomla!'s Post-installation Messages on Joomla! 3.2.0 and later instead of showing our own post-installation page after a new install / upgrade to a new version
+~ Some servers seem to try and load the AkeebaUsagestats class twice
+~ Default values in PHP File Change Scanner configuration
+# [MEDIUM] The Deactivate user after frequency would not stick in the settings
+# [MEDIUM] Fixed SQL error in PHP File Change Scanner
+# [LOW] The tmpl= and template= switches would stop working in the future, when the JRequest class will be removed from Joomla!.
+
+Admin Tools 3.1.1
+================================================================================
+! PHP File Change Scanner is broken
+
+Admin Tools 3.1.0
+================================================================================
++ Anonymous reporting of PHP, MySQL and CMS versions (opt-out through the options)
++ Added feature to purge scanned files cache
++ Added CLI script to check and repair database tables
++ You can now export and import Admin Tools settings
++ Added option to block user registration from selected email addresses
+~ Even better workaround for very badly written system plugins which output Javascript without a trailing semicolon and/or newline, leading to Javascript errors. This is not a bug in our software, it's a bug in those badly written plugins and WE have to work around THEIR bad code!
+# [MEDIUM] Joomla! caches plugin information, leading to unexpected behaviour in various places
+# [MEDIUM] Master Password sometimes doesn't work properly on some views
+# [MEDIUM] "Disable editing back-end users" doesn't work due to a Joomla! bug in JAccess::checkGroup
+# [LOW] Joomla! caches plugins' published status, leading to false reports of the Admin Tools plugin being disabled when it's enabled
+# [LOW] Notice thrown in cpanel when the system plugin is not enabled
+
+Admin Tools 3.0.3
+================================================================================
+- Removed the CSS and Javascript combination / minification feature as it's technically impossible to make as reliable as we'd like it to be
+# [LOW] Templates without a .sys.ini file show their default installed style as JLIB_INSTALLER_DEFAULT_STYLE
+
+Admin Tools 3.0.2
+================================================================================
+! Most of the "Active Request Filtering" options of the Web Application Firewall do not work under Joomla! 2.5
+
+Admin Tools 3.0.1
+================================================================================
+! NginX Configuration Maker: major changes required to be fully operational
+! CLI scripts were not being copied over
++ Tooltips in the Configure WAF page to make it easier to understand what each option does
++ Replace Joomla!'s hardcoded generator tag in Atom feeds
+~ Replacing legacy mooTools code with jQuery
+# [MEDIUM] Clean temp directory doesn't remove hidden files and folders since the Joomla! JFolder API doesn't list them by default
+# [MEDIUM] .htaccess and NginX Configuration Maker do not prevent access to the log directory
+
+Admin Tools 3.0.0
+================================================================================
++ Show update information in the component's control panel page
++ Allow the user to forcibly reload the update information from the component's control panel page
++ Automatically reorder the plugin to be the first published system plugin when you access the component's control panel page
++ Database table installation, uninstallation and update is now handled by our own code instead of the unreliable JInstaller code
++ Automatically repair Admin Tools' database tables in case of an update going wrong
++ Do not show the "Emergency off-line" and "Password-protect administrator" on servers which do not support .htaccess files
++ Do not show the "Permissions Configuration" and "Fix Permissions" features on Windows servers as the notion of permissions does not exist there
++ [PRO] NginX Configuration Maker brings the power of the .htaccess Maker to the high-performance NginX server!
++ [PRO] Admin Tools will notify you whether .htaccess / NginX Configuration Maker are supported on your server
++ [PRO] Option to reset Joomla!'s Two Factor Authentication when a user resets their password
++ [PRO] Added template emails for security exceptions notifications
++ [PRO] Repeated auto-bans lead to permanent ban (configurable)
++ [PRO] Forbid HTTP TRACE and TRACK methods (XST protection)
++ [PRO] Added "Away schedule" feature
+~ Replaced calls to JRequest with calls to JInput
+~ Joomla! 3.x was missing icon classes for some core buttons, e.g. the Back button.
+# [HIGH] Accessing the component fails on Joomla! 3.2.x if the core database has not been updated
+# [HIGH] The Published field of Redirect URLs was not respected
+# [MEDIUM] Updating the GeoIP database throw a fatal error when the GeoIP library has not been loaded
+# [LOW] Uncatchable Joomla! warning appears in .htaccess Maker when creating .htaccess and a .htaccess file doesn't already exist
+# [LOW] We should not ask users of the Core version to install the GeoIP plugin
+
 Admin Tools 2.6.2
 ================================================================================
 ! PHP File Change Scanner was broken due to missing method declarations

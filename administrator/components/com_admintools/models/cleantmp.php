@@ -1,17 +1,17 @@
 <?php
 /**
- *  @package AdminTools
- *  @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
- *  @license GNU General Public License version 3, or later
- *  @version $Id$
+ * @package   AdminTools
+ * @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
+ * @license   GNU General Public License version 3, or later
+ * @version   $Id$
  */
 
 // Protect from unauthorized access
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
 JLoader::import('joomla.client.ftp');
 
-class AdmintoolsModelCleantmp extends FOFModel
+class AdmintoolsModelCleantmp extends F0FModel
 {
 
 	/** @var float The time the process started */
@@ -35,6 +35,7 @@ class AdmintoolsModelCleantmp extends FOFModel
 	private function microtime_float()
 	{
 		list($usec, $sec) = explode(" ", microtime());
+
 		return ((float)$usec + (float)$sec);
 	}
 
@@ -49,12 +50,14 @@ class AdmintoolsModelCleantmp extends FOFModel
 	/**
 	 * Makes sure that no more than 3 seconds since the start of the timer have
 	 * elapsed
+	 *
 	 * @return bool
 	 */
 	private function haveEnoughTime()
 	{
 		$now = $this->microtime_float();
 		$elapsed = abs($now - $this->startTime);
+
 		return $elapsed < 2;
 	}
 
@@ -64,22 +67,22 @@ class AdmintoolsModelCleantmp extends FOFModel
 	private function saveStack()
 	{
 		$stack = array(
-			'folders'	=> $this->folderStack,
-			'files'		=> $this->filesStack,
-			'total'		=> $this->totalFolders,
-			'done'		=> $this->doneFolders
+			'folders' => $this->folderStack,
+			'files'   => $this->filesStack,
+			'total'   => $this->totalFolders,
+			'done'    => $this->doneFolders
 		);
 		$stack = json_encode($stack);
-		if(function_exists('base64_encode') && function_exists('base64_decode'))
+		if (function_exists('base64_encode') && function_exists('base64_decode'))
 		{
-			if(function_exists('gzdeflate') && function_exists('gzinflate'))
+			if (function_exists('gzdeflate') && function_exists('gzinflate'))
 			{
 				$stack = gzdeflate($stack, 9);
 			}
-			$stack = base64_encode ($stack);
+			$stack = base64_encode($stack);
 		}
 		$session = JFactory::getSession();
-		$session->set('cleantmp_stack', $stack ,'admintools');
+		$session->set('cleantmp_stack', $stack, 'admintools');
 	}
 
 	/**
@@ -88,7 +91,7 @@ class AdmintoolsModelCleantmp extends FOFModel
 	private function resetStack()
 	{
 		$session = JFactory::getSession();
-		$session->set('cleantmp_stack', '' ,'admintools');
+		$session->set('cleantmp_stack', '', 'admintools');
 		$this->folderStack = array();
 		$this->filesStack = array();
 		$this->totalFolders = 0;
@@ -101,21 +104,22 @@ class AdmintoolsModelCleantmp extends FOFModel
 	private function loadStack()
 	{
 		$session = JFactory::getSession();
-		$stack = $session->get('cleantmp_stack', '' ,'admintools');
+		$stack = $session->get('cleantmp_stack', '', 'admintools');
 
-		if(empty($stack))
+		if (empty($stack))
 		{
 			$this->folderStack = array();
 			$this->filesStack = array();
 			$this->totalFolders = 0;
 			$this->doneFolders = 0;
+
 			return;
 		}
 
-		if(function_exists('base64_encode') && function_exists('base64_decode'))
+		if (function_exists('base64_encode') && function_exists('base64_decode'))
 		{
 			$stack = base64_decode($stack);
-			if(function_exists('gzdeflate') && function_exists('gzinflate'))
+			if (function_exists('gzdeflate') && function_exists('gzinflate'))
 			{
 				$stack = gzinflate($stack);
 			}
@@ -130,68 +134,104 @@ class AdmintoolsModelCleantmp extends FOFModel
 
 	/**
 	 * Scans $root for directories and updates $folderStack
+	 *
 	 * @param string $root The full path of the directory to scan
 	 */
 	public function getDirectories($root = null)
 	{
 		$jreg = JFactory::getConfig();
-		if(version_compare(JVERSION, '3.0', 'ge')) {
+		if (version_compare(JVERSION, '3.0', 'ge'))
+		{
 			$tmpdir = $jreg->get('tmp_path');
-		} else {
+		}
+		else
+		{
 			$tmpdir = $jreg->getValue('config.tmp_path');
 		}
 
-		if(empty($root)) $root = $tmpdir;
+		if (empty($root))
+		{
+			$root = $tmpdir;
+		}
 		JLoader::import('joomla.filesystem.folder');
 
-		$folders = JFolder::folders($root,'.',false,true);
-		if(empty($folders)) $folders = array();
+		$folders = JFolder::folders($root, '.', false, true, array());
+		if (empty($folders))
+		{
+			$folders = array();
+		}
 		$this->totalFolders += count($folders);
 
-		if(count($folders)) foreach($folders as $folder) {
-			$this->getDirectories($folder);
-			$this->getFiles($folder);
-			
-			$this->folderStack = array_merge($this->folderStack, $folders);
+		if (count($folders))
+		{
+			foreach ($folders as $folder)
+			{
+				$this->getDirectories($folder);
+				$this->getFiles($folder);
+
+				$this->folderStack = array_merge($this->folderStack, $folders);
+			}
 		}
 	}
 
 	/**
 	 * Scans $root for files and updates $filesStack
+	 *
 	 * @param string $root The full path of the directory to scan
 	 */
 	public function getFiles($root = null)
 	{
 		$jreg = JFactory::getConfig();
-		if(version_compare(JVERSION, '3.0', 'ge')) {
+		if (version_compare(JVERSION, '3.0', 'ge'))
+		{
 			$tmpdir = $jreg->get('tmp_path');
-		} else {
+		}
+		else
+		{
 			$tmpdir = $jreg->getValue('config.tmp_path');
 		}
 
-		if(empty($root)) $root = $tmpdir;
+		if (empty($root))
+		{
+			$root = $tmpdir;
+		}
 
-		if(empty($root))
+		if (empty($root))
 		{
 			return;
 		}
 
-		$root = rtrim($root,'/');
-		$tmpdir = rtrim($tmpdir,'/');
+		$root = rtrim($root, '/');
+		$tmpdir = rtrim($tmpdir, '/');
 
 		JLoader::import('joomla.filesystem.folder');
 
-		$folders = JFolder::files($root,'.',false,true);
-		if(empty($folders)) $folders = array();
+		$folders = JFolder::files($root, '.', false, true, array(), array(), true);
+		if (empty($folders))
+		{
+			$folders = array();
+		}
 
-		if($root == $tmpdir) {
-			if(count($folders)) foreach($folders as $folder)
+		if ($root == $tmpdir)
+		{
+			if (count($folders))
 			{
-				if(basename($folder) == 'index.html') continue;
-				if(basename($folder) == '.htaccess') continue;
-				$this->filesStack[] = $folder;
+				foreach ($folders as $folder)
+				{
+					if (basename($folder) == 'index.html')
+					{
+						continue;
+					}
+					if (basename($folder) == '.htaccess')
+					{
+						continue;
+					}
+					$this->filesStack[] = $folder;
+				}
 			}
-		} else {
+		}
+		else
+		{
 			$this->filesStack = array_merge($this->filesStack, $folders);
 		}
 
@@ -204,14 +244,20 @@ class AdmintoolsModelCleantmp extends FOFModel
 		$this->resetTimer();
 		$this->getDirectories();
 		$this->getFiles();
-		if(empty($this->folderStack)) $this->folderStack = array();
-		if(empty($this->filesStack)) $this->filesStack = array();
+		if (empty($this->folderStack))
+		{
+			$this->folderStack = array();
+		}
+		if (empty($this->filesStack))
+		{
+			$this->filesStack = array();
+		}
 		asort($this->folderStack);
 		asort($this->filesStack);
 
 		$this->saveStack();
 
-		if(!$this->haveEnoughTime())
+		if (!$this->haveEnoughTime())
 		{
 			return true;
 		}
@@ -231,14 +277,18 @@ class AdmintoolsModelCleantmp extends FOFModel
 		$n_path = @realpath($path);
 		$path = empty($n_path) ? $path : $n_path;
 
-		if ($ftpOptions['enabled'] == 1) {
+		if ($ftpOptions['enabled'] == 1)
+		{
 			// Connect the FTP client
-			if(version_compare(JVERSION,'3.0','ge')) {
+			if (version_compare(JVERSION, '3.0', 'ge'))
+			{
 				$ftp = JClientFTP::getInstance(
 					$ftpOptions['host'], $ftpOptions['port'], array(),
 					$ftpOptions['user'], $ftpOptions['pass']
 				);
-			} else {
+			}
+			else
+			{
 				$ftp = JFTP::getInstance(
 					$ftpOptions['host'], $ftpOptions['port'], array(),
 					$ftpOptions['user'], $ftpOptions['pass']
@@ -246,30 +296,44 @@ class AdmintoolsModelCleantmp extends FOFModel
 			}
 		}
 
-		if(@unlink($path)) {
+		if (@unlink($path))
+		{
 			$ret = true;
-		} elseif(@rmdir($path)) {
+		}
+		elseif (@rmdir($path))
+		{
 			$ret = true;
-		} elseif ($ftpOptions['enabled'] == 1) {
-			if(substr($path,0,strlen(JPATH_ROOT)) !== JPATH_ROOT) return false;
+		}
+		elseif ($ftpOptions['enabled'] == 1)
+		{
+			if (substr($path, 0, strlen(JPATH_ROOT)) !== JPATH_ROOT)
+			{
+				return false;
+			}
 			// Translate path and delete
 			$path = JPath::clean(str_replace(JPATH_ROOT, $ftpOptions['root'], $path), '/');
 			// FTP connector throws an error
 			$ret = $ftp->delete($path);
-		} else {
+		}
+		else
+		{
 			return false;
 		}
+
 		return $ret;
 	}
 
 	public function run($resetTimer = true)
 	{
-		if($resetTimer) $this->resetTimer();
+		if ($resetTimer)
+		{
+			$this->resetTimer();
+		}
 
 		$this->loadStack();
 
 		$result = true;
-		while($result && $this->haveEnoughTime())
+		while ($result && $this->haveEnoughTime())
 		{
 			$result = $this->RealRun();
 		}
@@ -281,9 +345,9 @@ class AdmintoolsModelCleantmp extends FOFModel
 
 	private function RealRun()
 	{
-		if(!empty($this->filesStack))
+		if (!empty($this->filesStack))
 		{
-			while(!empty($this->filesStack) && $this->haveEnoughTime())
+			while (!empty($this->filesStack) && $this->haveEnoughTime())
 			{
 				$file = array_pop($this->filesStack);
 				$this->doneFolders++;
@@ -291,9 +355,9 @@ class AdmintoolsModelCleantmp extends FOFModel
 			}
 		}
 
-		if(empty($this->filesStack) && !empty($this->folderStack))
+		if (empty($this->filesStack) && !empty($this->folderStack))
 		{
-			while(!empty($this->folderStack) && $this->haveEnoughTime())
+			while (!empty($this->folderStack) && $this->haveEnoughTime())
 			{
 				$folder = array_pop($this->folderStack);
 				$this->doneFolders++;
@@ -301,15 +365,15 @@ class AdmintoolsModelCleantmp extends FOFModel
 			}
 		}
 
-		if(empty($this->filesStack) && empty($this->folderStack))
+		if (empty($this->filesStack) && empty($this->folderStack))
 		{
 			// Just finished
 			$this->resetStack();
+
 			return false;
 		}
 
 		// If we have more folders or files, continue in the next step
 		return true;
 	}
-
 }

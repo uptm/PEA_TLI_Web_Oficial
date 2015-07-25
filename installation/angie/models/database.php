@@ -59,6 +59,10 @@ class AngieModelDatabase extends AModel
 						{
 							$data['foreignkey'] = true;
 						}
+						if(!array_key_exists('noautovalue', $data))
+						{
+							$data['noautovalue'] = true;
+						}
 						if(!array_key_exists('replace', $data))
 						{
 							$data['replace'] = false;

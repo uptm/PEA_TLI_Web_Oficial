@@ -51,6 +51,12 @@ class ADatabaseRestoreSqlsrv extends ADatabaseRestore
 				// Do nothing if that fails. Maybe we can continue with the restoration.
 			}
 		}
+
+		// Suppress auto value on zero
+		if ($this->dbiniValues['noautovalue'])
+		{
+			// @TODO PostgreSQL does not support that.
+		}
 	}
 
 	/**

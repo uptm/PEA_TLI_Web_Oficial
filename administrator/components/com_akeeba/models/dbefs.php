@@ -13,7 +13,7 @@ defined('_JEXEC') or die();
  * Database Table filter Model class
  *
  */
-class AkeebaModelDbefs extends FOFModel
+class AkeebaModelDbefs extends F0FModel
 {
 
 	/**

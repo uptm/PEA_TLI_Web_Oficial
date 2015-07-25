@@ -9,7 +9,7 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
-class AkeebaTableStat extends FOFTable
+class AkeebaTableStat extends F0FTable
 {
 	public function __construct( $table, $key, &$db )
 	{

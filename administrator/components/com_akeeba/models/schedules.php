@@ -9,7 +9,7 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
-class AkeebaModelSchedules extends FOFModel
+class AkeebaModelSchedules extends F0FModel
 {
 	public function getPaths()
 	{
@@ -34,10 +34,10 @@ class AkeebaModelSchedules extends FOFModel
 				'feenabled' => false,
 			)
 		);
-		
+
 		// Get the profile ID
 		$profileid = AEPlatform::getInstance()->get_active_profile();
-		
+
 		// Get the absolute path to the site's root
 		$absolute_root = rtrim(realpath(JPATH_ROOT), DIRECTORY_SEPARATOR);
 		// Is this Windows?
@@ -53,14 +53,14 @@ class AkeebaModelSchedules extends FOFModel
 		$ret->info->feenabled = AEUtilComconfig::getValue('frontend_enable', false);
 		// Get root URL
 		$ret->info->root_url = rtrim(AEUtilComconfig::getValue('siteurl', ''), '/');
-		
+
 		// Get information for CLI CRON script
 		if(AKEEBA_PRO) {
 			$ret->cli->supported = true;
 			$ret->cli->path = $absolute_root.DIRECTORY_SEPARATOR.'cli'.DIRECTORY_SEPARATOR.'akeeba-backup.php';
 			if($profileid != 1) $ret->cli->path .= ' --profile='.$profileid;
 		}
-		
+
 		// Get information for alternative CLI CRON script
 		if(AKEEBA_PRO) {
 			$ret->altcli->supported = true;
@@ -69,7 +69,7 @@ class AkeebaModelSchedules extends FOFModel
 				if($profileid != 1) $ret->altcli->path .= ' --profile='.$profileid;
 			}
 		}
-		
+
 		// Get information for front-end backup
 		$ret->frontend->supported = true;
 		if(trim($ret->info->secret) && $ret->info->feenabled) {
@@ -77,7 +77,7 @@ class AkeebaModelSchedules extends FOFModel
 				. urlencode($ret->info->secret);
 			if($profileid != 1) $ret->frontend->path .= '&profile='.$profileid;
 		}
-		
+
 		return $ret;
 	}
 

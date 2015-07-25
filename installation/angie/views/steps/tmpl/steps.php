@@ -22,10 +22,12 @@ $i = 0;
 		<span class="icon-white icon-book"></span>
 		<?php echo AText::_('GENERIC_BTN_RTFM'); ?>
 	</a>
-	<a href="https://www.akeebabackup.com/videos/ab04.html" class="btn btn-inverse btn-small" target="_blank">
+	<?php if (isset($videourl) && !empty($videourl)): ?>
+	<a href="<?php echo $videourl ?>" class="btn btn-inverse btn-small" target="_blank">
 		<span class="icon-white icon-facetime-video"></span>
 		<?php echo AText::_('GENERIC_BTN_VIDEO'); ?>
 	</a>
+	<?php endif; ?>
 </div>
 
 <ul class="breadcrumb">

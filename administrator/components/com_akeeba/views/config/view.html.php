@@ -13,7 +13,7 @@ defined('_JEXEC') or die();
  * Akeeba Backup Configuration view class
  *
  */
-class AkeebaViewConfig extends FOFViewHtml
+class AkeebaViewConfig extends F0FViewHtml
 {
 	public function onAdd($tpl = null)
 	{
@@ -28,7 +28,7 @@ class AkeebaViewConfig extends FOFViewHtml
 		$this->profileid = $profileid;
 
 		// Get profile name
-		$profileName = FOFModel::getTmpInstance('Profiles','AkeebaModel')
+		$profileName = F0FModel::getTmpInstance('Profiles','AkeebaModel')
 			->setId($profileid)
 			->getItem()
 			->description;
@@ -36,7 +36,7 @@ class AkeebaViewConfig extends FOFViewHtml
 
 		// Get the root URI for media files
 		$this->mediadir = AkeebaHelperEscape::escapeJS($media_folder.'theme/');
-		
+
 		// Are the settings secured?
 		if( AEPlatform::getInstance()->get_platform_configuration_option('useencryption', -1) == 0 ) {
 			$this->securesettings = -1;
@@ -51,7 +51,7 @@ class AkeebaViewConfig extends FOFViewHtml
 				$this->securesettings = 0;
 			}
 		}
-		
+
 		// Add live help
 		AkeebaHelperIncludes::addHelp('config');
 	}

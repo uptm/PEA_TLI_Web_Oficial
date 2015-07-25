@@ -2,6 +2,7 @@
 /**
  * Akeeba Engine
  * The modular PHP5 site backup engine
+ *
  * @copyright Copyright (c)2009-2014 Nicholas K. Dionysopoulos
  * @license   GNU GPL version 3 or, at your option, any later version
  * @package   akeebaengine
@@ -47,7 +48,7 @@ abstract class AEAbstractDriver extends AEAbstractObject implements AEAbstractDr
 	/** @var string The name of the database driver. */
 	public $name;
 
-	/** @var resource The db conenction resource */
+	/** @var resource The db connection resource */
 	protected $connection = '';
 
 	/** @var    integer  The number of SQL statements executed by the database driver. */
@@ -205,6 +206,7 @@ abstract class AEAbstractDriver extends AEAbstractObject implements AEAbstractDr
 
 	/**
 	 * Database object destructor
+	 *
 	 * @return bool
 	 */
 	public function __destruct()
@@ -248,6 +250,7 @@ abstract class AEAbstractDriver extends AEAbstractObject implements AEAbstractDr
 
 	/**
 	 * Opens a database connection. It MUST be overriden by children classes
+	 *
 	 * @return AEAbstractDriver
 	 */
 	public function open()
@@ -1415,6 +1418,7 @@ abstract class AEAbstractDriver extends AEAbstractObject implements AEAbstractDr
 
 	/**
 	 * Get the error message
+	 *
 	 * @return string The error message for the most recent query
 	 */
 	public final function getErrorMsg($escaped = false)
@@ -1431,11 +1435,27 @@ abstract class AEAbstractDriver extends AEAbstractObject implements AEAbstractDr
 
 	/**
 	 * Get the error number
+	 *
 	 * @return int The error number for the most recent query
 	 */
 	public final function getErrorNum()
 	{
 		return $this->errorNum;
+	}
+
+	/**
+	 * Resets the error condition in the driver. Useful to reset the error state after handling a thrown exception.
+	 *
+	 * @return $this for chaining
+	 */
+	public function resetErrors()
+	{
+		$this->errorNum = 0;
+		$this->errorMsg = '';
+
+		parent::resetErrors();
+
+		return $this;
 	}
 
 	/**

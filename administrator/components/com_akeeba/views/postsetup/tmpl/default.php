@@ -13,9 +13,12 @@ JHtml::_('behavior.framework');
 
 $disabled = AKEEBA_PRO ? '' : 'disabled = "disabled"';
 
-$script = <<<ENDSCRIPT
-window.addEvent('domready', function(){
-	(function($) {
+$script = <<<JS
+
+;// This comment is intentionally put here to prevent badly written plugins from causing a Javascript error
+// due to missing trailing semicolon and/or newline in their code.
+(function($){
+	$(document).ready(function(){
 		$('#akeeba-postsetup-apply').click(function(e){
 			$('#adminForm').submit();
 		});
@@ -23,10 +26,10 @@ window.addEvent('domready', function(){
 			$('#acceptlicense, #acceptsupport, #acceptbackuptest').attr('checked','checked');
 			$('#adminForm').submit();
 		});
-	})(akeeba.jQuery);
-});
+	})
+})(akeeba.jQuery)
 
-ENDSCRIPT;
+JS;
 JFactory::getDocument()->addScriptDeclaration($script);
 
 ?>

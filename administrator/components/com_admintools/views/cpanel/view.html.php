@@ -1,18 +1,18 @@
 <?php
 /**
- *  @package AdminTools
- *  @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
- *  @license GNU General Public License version 3, or later
- *  @version $Id$
+ * @package   AdminTools
+ * @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
+ * @license   GNU General Public License version 3, or later
+ * @version   $Id$
  */
 
 // Protect from unauthorized access
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
 // Load framework base classes
 JLoader::import('joomla.application.component.view');
 
-class AdmintoolsViewCpanel extends FOFViewHtml
+class AdmintoolsViewCpanel extends F0FViewHtml
 {
 	protected function onBrowse($tpl = null)
 	{
@@ -30,24 +30,32 @@ class AdmintoolsViewCpanel extends FOFViewHtml
 		$sql = $db->getQuery(true)
 			->select($db->qn('params'))
 			->from($db->qn('#__extensions'))
-			->where($db->qn('type').' = '.$db->q('component'))
-			->where($db->qn('element').' = '.$db->q('com_admintools'));
+			->where($db->qn('type') . ' = ' . $db->q('component'))
+			->where($db->qn('element') . ' = ' . $db->q('com_admintools'));
 		$db->setQuery($sql);
 		$rawparams = $db->loadResult();
 		$params = new JRegistry();
-		if(version_compare(JVERSION, '3.0', 'ge')) {
+		if (version_compare(JVERSION, '3.0', 'ge'))
+		{
 			$params->loadString($rawparams, 'JSON');
-		} else {
+		}
+		else
+		{
 			$params->loadJSON($rawparams);
 		}
 		$this->showstats = $params->get('showstats', 1);
 
 		// Load the models
 		/** @var AdmintoolsModelCpanels $model */
+		/** @var AdmintoolsModelStats $statsModel */
 		$model = $this->getModel();
-		$adminpwmodel = FOFModel::getAnInstance('Adminpw','AdmintoolsModel');
-		$mpModel = FOFModel::getAnInstance('Masterpw','AdmintoolsModel');
-		$geoModel = FOFModel::getAnInstance('Geoblock','AdmintoolsModel');
+		$adminpwmodel = F0FModel::getAnInstance('Adminpw', 'AdmintoolsModel');
+		$mpModel = F0FModel::getAnInstance('Masterpw', 'AdmintoolsModel');
+		$geoModel = F0FModel::getAnInstance('Geoblock', 'AdmintoolsModel');
+		$statsModel = F0FModel::getAnInstance('Stats', 'AdmintoolsModel');
+
+		/** Reorder the Admin Tools plugin */
+		$model->reorderPlugin();
 
 		// Decide on the administrator password padlock icon
 		$adminlocked = $adminpwmodel->isLocked();
@@ -58,30 +66,51 @@ class AdmintoolsViewCpanel extends FOFViewHtml
 
 		// Is this MySQL?
 		$dbType = JFactory::getDbo()->name;
-		$isMySQL = stristr($dbType, 'mysql');
+		$isMySQL = strpos($dbType, 'mysql') !== false;
 
 		// If the user doesn't have a valid master pw for some views, don't show
 		// the buttons.
-		$this->enable_cleantmp =		$mpModel->accessAllowed('cleantmp');
-		$this->enable_fixperms =		$mpModel->accessAllowed('fixperms');
-		$this->enable_purgesessions =	$mpModel->accessAllowed('purgesessions');
-		$this->enable_dbtools = 		$mpModel->accessAllowed('dbtools');
-		$this->enable_dbchcol = 		$mpModel->accessAllowed('dbchcol');
+		$this->enable_cleantmp = $mpModel->accessAllowed('cleantmp');
+		$this->enable_fixperms = $mpModel->accessAllowed('fixperms');
+		$this->enable_purgesessions = $mpModel->accessAllowed('purgesessions');
+		$this->enable_dbtools = $mpModel->accessAllowed('dbtools');
+		$this->enable_dbchcol = $mpModel->accessAllowed('dbchcol');
 
-		$this->isMySQL = 				$isMySQL;
+		$this->isMySQL = $isMySQL;
 
-		$this->pluginid = 				$model->getPluginID();
+		$this->pluginid = $model->getPluginID();
 
-		$this->hasplugin = 				$geoModel->hasGeoIPPlugin();
-		$this->pluginNeedsUpdate =		$geoModel->dbNeedsUpdate();
+		$this->hasplugin = $geoModel->hasGeoIPPlugin();
+		$this->pluginNeedsUpdate = $geoModel->dbNeedsUpdate();
 
-		$this->update_plugin =			$model->isUpdatePluginEnabled();
+		$this->update_plugin = $model->isUpdatePluginEnabled();
 
-		if(version_compare(JVERSION, '3.0', 'ge')) {
-			JHTML::_('behavior.framework');
-		} else {
-			JHTML::_('behavior.mootools');
+		JHTML::_('behavior.framework', true);
+
+		// Is this a very old version? If it's older than 90 days let's warn the user
+		$this->oldVersion = false;
+		$relDate = new JDate(ADMINTOOLS_DATE);
+		$interval = time() - $relDate->toUnix();
+
+		if ($interval > (60 * 60 * 24 * 90))
+		{
+			$this->oldVersion = true;
 		}
+
+		$this->loadHelper('servertech');
+
+		// Is .htaccess Maker supported?
+		$this->htMakerSupported = AdmintoolsHelperServertech::isHtaccessSupported();
+
+		// Is NginX Configuration Maker supported?
+		$this->nginxMakerSupported = AdmintoolsHelperServertech::isNginxSupported();
+
+		// Collect information about the site
+        $this->statsIframe = F0FModel::getTmpInstance('Stats', 'AdmintoolsModel')->collectStatistics(true);
+
+		// Post-installation messages information
+		$this->hasPostInstallationMessages = $model->hasPostInstallMessages();
+		$this->extension_id = $model->getState('extension_id', 0, 'int');
 
 		return true;
 	}

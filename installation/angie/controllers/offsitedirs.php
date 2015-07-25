@@ -12,7 +12,9 @@ class AngieControllerOffsitedirs extends AController
 {
 	public function move()
 	{
-		$key = $this->input->get('key', null);
+        // We have to use the HTML filter, since the key could contain a forward slash
+        // e.g. virtual_folders/first_folder
+		$key = $this->input->get('key', null, 'html');
 
 		if (empty($key))
 		{

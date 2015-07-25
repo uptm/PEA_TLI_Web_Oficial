@@ -14,9 +14,9 @@ var admintools_error_callback = dummy_error_handler;
 /** @var The password sent to the restoration script */
 var admintools_update_password = '';
 
-var	admintools_update_stat_inbytes = 0;
-var	admintools_update_stat_outbytes = 0;
-var	admintools_update_stat_files = 0;
+var admintools_update_stat_inbytes = 0;
+var admintools_update_stat_outbytes = 0;
+var admintools_update_stat_files = 0;
 var admintools_update_factory = null;
 
 /**
@@ -25,7 +25,7 @@ var admintools_update_factory = null;
  */
 function dummy_error_handler(error)
 {
-	alert("ERROR:\n"+error);
+	alert("ERROR:\n" + error);
 }
 
 /**
@@ -39,16 +39,15 @@ function dummy_error_handler(error)
 function doAjax(data, successCallback, errorCallback)
 {
 	var json = JSON.stringify(data);
-	if( admintools_update_password.length > 0 )
+	if (admintools_update_password.length > 0)
 	{
-		json = AesCtr.encrypt( json, admintools_update_password, 128 );
+		json = AesCtr.encrypt(json, admintools_update_password, 128);
 	}
-	var post_data = 'json='+encodeURIComponent(json);
-
+	var post_data = 'json=' + encodeURIComponent(json);
 
 	var structure =
 	{
-		onSuccess: function(msg, responseXML)
+		onSuccess: function (msg, responseXML)
 		{
 			// Initialize
 			var junk = null;
@@ -56,12 +55,13 @@ function doAjax(data, successCallback, errorCallback)
 
 			// Get rid of junk before the data
 			var valid_pos = msg.indexOf('###');
-			if( valid_pos == -1 ) {
+			if (valid_pos == -1)
+			{
 				// Valid data not found in the response
 				msg = 'Invalid AJAX data:\n' + msg;
-				if(errorCallback == null)
+				if (errorCallback == null)
 				{
-					if(admintools_error_callback != null)
+					if (admintools_error_callback != null)
 					{
 						admintools_error_callback(msg);
 					}
@@ -71,7 +71,9 @@ function doAjax(data, successCallback, errorCallback)
 					errorCallback(msg);
 				}
 				return;
-			} else if( valid_pos != 0 ) {
+			}
+			else if (valid_pos != 0)
+			{
 				// Data is prefixed with junk
 				junk = msg.substr(0, valid_pos);
 				message = msg.substr(valid_pos);
@@ -86,22 +88,28 @@ function doAjax(data, successCallback, errorCallback)
 			var valid_pos = message.lastIndexOf('###');
 			message = message.substr(0, valid_pos); // Remove triple hash in the end
 			// Decrypt if required
-			if( admintools_update_password.length > 0 )
+			if (admintools_update_password.length > 0)
 			{
-				try {
+				try
+				{
 					var data = JSON.parse(message);
-				} catch(err) {
+				}
+				catch (err)
+				{
 					message = AesCtr.decrypt(message, admintools_update_password, 128);
 				}
 			}
 
-			try {
+			try
+			{
 				var data = JSON.parse(message);
-			} catch(err) {
+			}
+			catch (err)
+			{
 				var msg = err.message + "\n<br/>\n<pre>\n" + message + "\n</pre>";
-				if(errorCallback == null)
+				if (errorCallback == null)
 				{
-					if(admintools_error_callback != null)
+					if (admintools_error_callback != null)
 					{
 						admintools_error_callback(msg);
 					}
@@ -116,11 +124,12 @@ function doAjax(data, successCallback, errorCallback)
 			// Call the callback function
 			successCallback(data);
 		},
-		onFailure: function(req) {
-			var message = 'AJAX Loading Error: '+req.statusText;
-			if(errorCallback == null)
+		onFailure: function (req)
+		{
+			var message = 'AJAX Loading Error: ' + req.statusText;
+			if (errorCallback == null)
 			{
-				if(admintools_error_callback != null)
+				if (admintools_error_callback != null)
 				{
 					admintools_error_callback(message);
 				}
@@ -133,16 +142,19 @@ function doAjax(data, successCallback, errorCallback)
 	};
 
 	var ajax_object = null;
-	
+
 	// Damn you, Internet Explorer!!!
 	var randomJunk = new Date().getTime();
-	var url = admintools_ajax_url+'?randomJunk='+randomJunk;
-	
-	if(typeof(XHR) == 'undefined') {
+	var url = admintools_ajax_url + '?randomJunk=' + randomJunk;
+
+	if (typeof(XHR) == 'undefined')
+	{
 		structure.url = url;
 		ajax_object = new Request(structure);
 		ajax_object.send(post_data);
-	} else {
+	}
+	else
+	{
 		ajax_object = new XHR(structure);
 		ajax_object.send(url, post_data);
 	}
@@ -160,8 +172,9 @@ function pingUpdate()
 	admintools_update_stat_outbytes = 0;
 
 	// Do AJAX post
-	var post = {task : 'ping'};
-	doAjax(post, function(data){
+	var post = {task: 'ping'};
+	doAjax(post, function (data)
+	{
 		startUpdate(data);
 	});
 }
@@ -177,8 +190,9 @@ function startUpdate()
 	admintools_update_stat_inbytes = 0;
 	admintools_update_stat_outbytes = 0;
 
-	var post = { task : 'startRestore' };
-	doAjax(post, function(data){
+	var post = { task: 'startRestore' };
+	doAjax(post, function (data)
+	{
 		processUpdateStep(data);
 	});
 }
@@ -190,14 +204,14 @@ function startUpdate()
  */
 function processUpdateStep(data)
 {
-	if(data.status == false)
+	if (data.status == false)
 	{
 		// handle failure
 		admintools_error_callback(data.message);
 	}
 	else
 	{
-		if(data.done)
+		if (data.done)
 		{
 			admintools_update_factory = data.factory;
 			finalizeUpdate();
@@ -212,14 +226,15 @@ function processUpdateStep(data)
 			// Display data
 			document.getElementById('extbytesin').innerHTML = admintools_update_stat_inbytes;
 			document.getElementById('extbytesout').innerHTML = admintools_update_stat_outbytes;
-			document.getElementById('extfiles').innerHTML = admintools_update_stat_files; 
+			document.getElementById('extfiles').innerHTML = admintools_update_stat_files;
 
 			// Do AJAX post
 			post = {
-				task: 'stepRestore',
+				task:    'stepRestore',
 				factory: data.factory
 			};
-			doAjax(post, function(data){
+			doAjax(post, function (data)
+			{
 				processUpdateStep(data);
 			});
 		}
@@ -229,22 +244,26 @@ function processUpdateStep(data)
 function finalizeUpdate()
 {
 	// Do AJAX post
-	var post = { task : 'finalizeRestore', factory: admintools_update_factory };
-	doAjax(post, function(data){
+	var post = { task: 'finalizeRestore', factory: admintools_update_factory };
+	doAjax(post, function (data)
+	{
 		updateFinished(data);
 	});
 }
 
 function updateFinished()
 {
-	window.location = 'index.php?option=com_admintools&view=jupdate&task=finalize&file='+admintools_file;
+	window.location = 'index.php?option=com_admintools&view=jupdate&task=finalize&file=' + admintools_file;
 }
 
 function showWhatthis()
 {
-	if(document.getElementById('admintools-whatsthis-info').style.display == 'block') {
+	if (document.getElementById('admintools-whatsthis-info').style.display == 'block')
+	{
 		document.getElementById('admintools-whatsthis-info').style.display = 'none';
-	} else {
+	}
+	else
+	{
 		document.getElementById('admintools-whatsthis-info').style.display = 'block';
 	}
 }

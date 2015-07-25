@@ -13,22 +13,22 @@ defined('_JEXEC') or die();
  * Akeeba Backup Control Panel view class
  *
  */
-class AkeebaViewCpanel extends FOFViewHtml
+class AkeebaViewCpanel extends F0FViewHtml
 {
 	protected function onBrowse($tpl = null) {
-		// Used in FOF 2.0, where this actually works as expected
+		// Used in F0F 2.0, where this actually works as expected
 		$this->onAdd($tpl);
 	}
 
 	protected function onAdd($tpl = null)
 	{
-		// Used in FOF 1.x where the behaviour was kinda clunky
+		/** @var AkeebaModelCpanels $model */
 		$model = $this->getModel();
 
 		/**
-		$selfhealModel = FOFModel::getTmpInstance('Selfheal','AkeebaModel');
+		$selfhealModel = F0FModel::getTmpInstance('Selfheal','AkeebaModel');
 		$schemaok = $selfhealModel->healSchema();
-		**/
+		/**/
 		$schemaok = true;
 		$this->schemaok = $schemaok;
 
@@ -57,9 +57,13 @@ class AkeebaViewCpanel extends FOFViewHtml
 
 			$this->needsdlid = $model->needsDownloadID();
 			$this->needscoredlidwarning = $model->mustWarnAboutDownloadIDInCore();
+			$this->hasPostInstallationMessages = $model->hasPostInstallMessages();
+			$this->extension_id = $model->getState('extension_id', 0, 'int');
 
 			// Add live help
 			AkeebaHelperIncludes::addHelp('cpanel');
+
+            $this->statsIframe = F0FModel::getTmpInstance('Stats', 'AkeebaModel')->collectStatistics(true);
 		}
 
 		return $this->onDisplay($tpl);

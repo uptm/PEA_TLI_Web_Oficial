@@ -15,11 +15,13 @@ class AngieControllerMain extends AController
 	 */
 	public function detectversion()
 	{
-		$this->getThisModel()->detectVersion();
-		
+		/** @var AngieModelMain $model */
+		$model = $this->getThisModel();
+		$model->detectVersion();
+
 		echo json_encode(true);
 	}
-	
+
 	/**
 	 * Try to read configuration.php
 	 */
@@ -27,10 +29,12 @@ class AngieControllerMain extends AController
 	{
 		// Load the default configuration and save it to the session
 		$data = $this->input->getData();
+
+        /** @var AngieModelConfiguration $model */
 		$model = AModel::getAnInstance('Configuration', 'AngieModel');
 		$this->input->setData($data);
 		ASession::getInstance()->saveData();
-		
+
 		// Try to load the configuration from the site's configuration.php
 		$filename = APATH_SITE . '/configuration.php';
 		if (file_exists($filename))
@@ -41,17 +45,17 @@ class AngieControllerMain extends AController
 				$model->set($k, $v);
 			}
 			ASession::getInstance()->saveData();
-			
+
 			echo json_encode(true);
 		}
 		else
 		{
 			echo json_encode(false);
 		}
-		
+
 		//AApplication::getInstance()->close();
 	}
-	
+
 	public function startover()
 	{
 		ASession::getInstance()->reset();

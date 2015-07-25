@@ -1,12 +1,12 @@
 <extension type="component" version="2.5.0" method="upgrade">
 	<name>Admintools</name>
-	<creationDate>2014-03-10</creationDate>
+	<creationDate>2014-10-17</creationDate>
 	<author>Nicholas K. Dionysopoulos</author>
 	<authorEmail>nicholas@akeebabackup.com</authorEmail>
 	<authorUrl>http://www.akeebabackup.com</authorUrl>
 	<copyright>Copyright (c)2010 Nicholas K. Dionysopoulos</copyright>
 	<license>This component in released under the GNU/GPL v3 or later license</license>
-	<version>2.6.2</version>
+	<version>3.3.1</version>
 	<description>Security and utilitarian tools for Joomla! site administrators</description>
 
 	<!-- Public front end files -->
@@ -18,52 +18,6 @@
 	<languages folder="language/frontend">
 		<language tag="en-GB">en-GB/en-GB.com_admintools.ini</language>
 	</languages>
-
-	<!-- SQL query files to execute on installation -->
-	<install>
-		<sql>
-			<file driver="mysql" charset="utf8">sql/install/mysql/install.sql</file>
-			<file driver="mysql">sql/install/mysql/install.sql</file>
-			<file driver="mysqli" charset="utf8">sql/install/mysql/install.sql</file>
-			<file driver="mysqli">sql/install/mysql/install.sql</file>
-
-			<file driver="sqlsrv" charset="utf8">sql/install/sqlsrv/install.sql</file>
-			<file driver="sqlsrv">sql/install/sqlsrv/install.sql</file>
-			<file driver="sqlazure" charset="utf8">sql/install/sqlsrv/install.sql</file>
-			<file driver="sqlazure">sql/install/sqlsrv/install.sql</file>
-
-			<file driver="postgresql" charset="utf8">sql/install/postgresql/install.sql</file>
-			<file driver="postgresql">sql/install/postgresql/install.sql</file>
-		</sql>
-	</install>
-
-	<!-- SQL query files to execute on uninstallation -->
-	<uninstall>
-		<sql>
-			<file driver="mysql" charset="utf8">sql/install/mysql/uninstall.sql</file>
-			<file driver="mysql">sql/install/mysql/uninstall.sql</file>
-			<file driver="mysqli" charset="utf8">sql/install/mysql/uninstall.sql</file>
-			<file driver="mysqli">sql/install/mysql/uninstall.sql</file>
-
-			<file driver="sqlsrv" charset="utf8">sql/install/sqlsrv/uninstall.sql</file>
-			<file driver="sqlsrv">sql/install/sqlsrv/uninstall.sql</file>
-			<file driver="sqlazure" charset="utf8">sql/install/sqlsrv/uninstall.sql</file>
-			<file driver="sqlazure">sql/install/sqlsrv/uninstall.sql</file>
-
-			<file driver="postgresql" charset="utf8">sql/install/postgresql/uninstall.sql</file>
-			<file driver="postgresql">sql/install/postgresql/uninstall.sql</file>
-		</sql>
-	</uninstall>
-
-	<!-- SQL files to run on update -->
-	<update>
-		<schemas>
-			<schemapath type="mysql">sql/update/mysql</schemapath>
-			<schemapath type="sqlsrv">sql/update/sqlsrv</schemapath>
-			<schemapath type="sqlazure">sql/update/sqlazure</schemapath>
-			<schemapath type="postgresql">sql/update/postgresql</schemapath>
-		</schemas>
-	</update>
 
 	<!-- Media files -->
 	<media destination="com_admintools" folder="media">
@@ -84,6 +38,7 @@
 			<filename>admintools.php</filename>
 			<filename>config.xml</filename>
 			<filename>dispatcher.php</filename>
+			<filename>fileslist.php</filename>
 			<filename>fof.xml</filename>
 			<filename>index.html</filename>
 			<!--<filename>restore.php</filename>-->
@@ -91,6 +46,7 @@
 			<filename>version.php</filename>
 			<filename>CHANGELOG.php</filename>
 
+      <folder>assets</folder>
 			<!--<folder>classes</folder>-->
 			<folder>controllers</folder>
 			<folder>fof</folder>

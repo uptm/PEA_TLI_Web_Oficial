@@ -59,6 +59,20 @@ class ADatabaseRestoreMysqli extends ADatabaseRestore
 				// Do nothing if that fails. Maybe we can continue with the restoration.
 			}
 		}
+
+		// Suppress auto value on zero
+		if ($this->dbiniValues['noautovalue'])
+		{
+			$this->db->setQuery('SET NO_AUTO_VALUE_ON_ZERO = 1');
+			try
+			{
+				$this->db->execute();
+			}
+			catch (Exception $exc)
+			{
+				// Do nothing if that fails. Maybe we can continue with the restoration.
+			}
+		}
 	}
 
 	/**

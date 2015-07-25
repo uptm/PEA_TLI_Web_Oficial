@@ -279,6 +279,14 @@ abstract class AEAbstractDump extends AEAbstractPart
 		// Initialize the algorithm
 		AEUtilLogger::WriteLog(_AE_LOG_DEBUG, __CLASS__ . " :: Initializing algorithm for first run");
 		$this->nextTable = array_shift($this->tables);
+
+		// If there is no table to back up we are done with the database backup
+		if (empty($this->nextTable))
+		{
+			$this->setState('postrun');
+			return;
+		}
+
 		$this->nextRange = 0;
 		$this->query = '';
 
@@ -400,16 +408,9 @@ abstract class AEAbstractDump extends AEAbstractPart
 	 */
 	protected function _finalize()
 	{
-		static $addedExtraSQL = false;
-
-		// This makes sure that we don't re-add the extra SQL if the archiver needed more time
-		// to include our file in the archive...
-		if (!$addedExtraSQL)
-		{
-			AEUtilLogger::WriteLog(_AE_LOG_DEBUG, "Adding any extra SQL statements imposed by the filters");
-			$filters = AEFactory::getFilters();
-			$this->writeline($filters->getExtraSQL($this->databaseRoot));
-		}
+        AEUtilLogger::WriteLog(_AE_LOG_DEBUG, "Adding any extra SQL statements imposed by the filters");
+        $filters = AEFactory::getFilters();
+        $this->writeline($filters->getExtraSQL($this->databaseRoot));
 
 		// Close the file pointer (otherwise the SQL file is left behind)
 		$this->closeFile();
@@ -427,10 +428,14 @@ abstract class AEAbstractDump extends AEAbstractPart
 				// We had already started archiving the db file, but it needs more time
 				AEUtilLogger::WriteLog(_AE_LOG_DEBUG, "Continuing adding the SQL dump to the archive");
 				$archiver->addFile(null, null, null);
+
+                $this->propagateFromObject($archiver);
+
 				if ($this->getError())
 				{
 					return;
 				}
+
 				$finished = !$configuration->get('volatile.engine.archiver.processingfile', false);
 			}
 			else
@@ -438,10 +443,14 @@ abstract class AEAbstractDump extends AEAbstractPart
 				// We have to add the dump file to the archive
 				AEUtilLogger::WriteLog(_AE_LOG_DEBUG, "Adding the final SQL dump to the archive");
 				$archiver->addFileRenamed($this->tempFile, $this->saveAsName);
+
+                $this->propagateFromObject($archiver);
+
 				if ($this->getError())
 				{
 					return;
 				}
+
 				$finished = !$configuration->get('volatile.engine.archiver.processingfile', false);
 			}
 		}
@@ -450,6 +459,7 @@ abstract class AEAbstractDump extends AEAbstractPart
 			// We just have to move the dump file to its final destination
 			AEUtilLogger::WriteLog(_AE_LOG_DEBUG, "Moving the SQL dump to its final location");
 			$result = AEPlatform::getInstance()->move($this->tempFile, $this->saveAsName);
+
 			if (!$result)
 			{
 				$this->setError('Could not move the SQL dump to its final location');
@@ -461,6 +471,7 @@ abstract class AEAbstractDump extends AEAbstractPart
 		{
 			AEUtilLogger::WriteLog(_AE_LOG_DEBUG, "Removing temporary file of final SQL dump");
 			AEUtilTempfiles::unregisterAndDeleteTempFile($this->tempFile, true);
+
 			if ($this->getError())
 			{
 				return;
@@ -521,7 +532,7 @@ abstract class AEAbstractDump extends AEAbstractPart
 	/**
 	 * Creates a new dump part, but only if required to do so
 	 *
-	 * @return type
+	 * @return bool
 	 */
 	protected function createNewPartIfRequired()
 	{

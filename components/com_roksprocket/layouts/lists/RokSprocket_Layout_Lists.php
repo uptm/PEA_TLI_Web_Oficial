@@ -1,6 +1,6 @@
 <?php
 /**
- * @version   $Id: RokSprocket_Layout_Lists.php 19259 2014-02-27 22:30:09Z btowles $
+ * @version   $Id: RokSprocket_Layout_Lists.php 21881 2014-07-09 22:43:31Z kevin $
  * @author    RocketTheme http://www.rockettheme.com
  * @copyright Copyright (C) 2007 - 2014 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
@@ -122,8 +122,9 @@ class RokSprocket_Layout_Lists extends RokSprocket_AbstractLayout
 	 */
 	public function renderInstanceHeaders()
 	{
-		RokCommon_Header::addScript($this->theme_context->getUrl('lists.js'));
-		RokCommon_Header::addStyle($this->theme_context->getUrl('lists.css'));
+		$filename = ($this->theme == 'default' ? 'lists' : $this->theme);
+		RokCommon_Header::addStyle($this->theme_context->getUrl($filename . '.css'));
+		RokCommon_Header::addScript($this->theme_context->getUrl($filename . '.js'));
 
 		$id                  = $this->parameters->get('module_id');
 		$settings            = new stdClass();
@@ -151,7 +152,9 @@ class RokSprocket_Layout_Lists extends RokSprocket_AbstractLayout
 		if (!self::$instanceHeadersRendered) {
 
 			$root_assets = RokCommon_Composite::get($this->basePackage . '.assets.js');
+			$layout_assets = RokCommon_Composite::get($this->layoutPackage . '.assets.js');
 			RokCommon_Header::addScript($root_assets->getUrl('roksprocket.request.js'));
+			RokCommon_Header::addScript($layout_assets->getUrl('lists.js'));
 
 			$instance   = array();
 			$instance[] = "window.addEvent('domready', function(){";

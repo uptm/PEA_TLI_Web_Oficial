@@ -45,6 +45,12 @@ class ADatabaseRestorePostgresql extends ADatabaseRestore
 			// ALTER TABLE tablename DISABLE TRIGGER ALL
 			// but does it really make any sense?
 		}
+
+		// Suppress auto value on zero
+		if ($this->dbiniValues['noautovalue'])
+		{
+			// @TODO PostgreSQL does not support that.
+		}
 	}
 
 	/**

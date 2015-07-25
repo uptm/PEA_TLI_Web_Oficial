@@ -281,8 +281,14 @@ class AngieModelSetup extends AModel
 		$this->configModel->set('db', $connectionVars->dbname);
 		$this->configModel->set('dbprefix', $connectionVars->prefix);
 
+        // Let's get the old secret key, since we need it to update encrypted stored data
+        $oldsecret = $this->configModel->get('secret', '');
+        $newsecret = $this->genRandomPassword(32);
+
 		// -- Override the secret key
-		$this->configModel->set('secret', $this->genRandomPassword(32));
+		$this->configModel->set('secret', $newsecret);
+
+        $this->updateEncryptedData($oldsecret, $newsecret);
 
 		$this->configModel->saveToSession();
 
@@ -321,6 +327,108 @@ class AngieModelSetup extends AModel
 
 		return true;
 	}
+
+    /**
+     * This method will update the data encrypted with the old secret key, encrypting it again using
+     * the new secret key
+     *
+     * @param   string  $oldsecret  Old secret key
+     * @param   string  $newsecret  New secret key
+     *
+     * @return  void
+     */
+    private function updateEncryptedData($oldsecret, $newsecret)
+    {
+        $this->updateTFA($oldsecret, $newsecret);
+    }
+
+    private function updateTFA($oldsecret, $newsecret)
+    {
+        ASession::getInstance()->set('tfa_warning', false);
+
+        // There is no TFA in Joomla < 3.2
+        $jversion = ASession::getInstance()->get('jversion');
+        if(version_compare($jversion, '3.2', 'lt'))
+        {
+            return;
+        }
+
+        $db = $this->getDatabase();
+
+        $query = $db->getQuery(true)
+                    ->select('COUNT(extension_id)')
+                    ->from($db->qn('#__extensions'))
+                    ->where($db->qn('type').' = '.$db->q('plugin'))
+                    ->where($db->qn('folder').' = '.$db->q('twofactorauth'))
+                    ->where($db->qn('enabled').' = '.$db->q('1'));
+        $count = $db->setQuery($query)->loadResult();
+
+        // No enabled plugin, there is no point in continuing
+        if(!$count)
+        {
+            return;
+        }
+
+        $query = $db->getQuery(true)
+                    ->select('*')
+                    ->from($db->qn('#__users'))
+                    ->where($db->qn('otpKey').' != '.$db->q(''))
+                    ->where($db->qn('otep').' != '.$db->q(''));
+
+        $users = $db->setQuery($query)->loadObjectList();
+
+        // There are no users with TFA configured, let's stop here
+        if(!$users)
+        {
+            return;
+        }
+
+        // Otherwise I'll get a blank page
+        if(!defined('FOF_INCLUDED'))
+        {
+            define('FOF_INCLUDED', 1);
+        }
+
+        include_once APATH_LIBRARIES.'/fof/encrypt/aes.php';
+
+        // Does this host support AES?
+        if(!FOFEncryptAes::isSupported())
+        {
+            // If not, set a flag, so we will display a big, fat warning in the finalize screen
+            ASession::getInstance()->set('tfa_warning', true);
+
+            // Let's disable them
+            $query = $db->getQuery(true)
+                        ->update($db->qn('#__extensions'))
+                        ->set($db->qn('enabled').' = '.$db->q('0'))
+                        ->where($db->qn('type').' = '.$db->q('plugin'))
+                        ->where($db->qn('folder').' = '.$db->q('twofactorauth'));
+            $db->setQuery($query)->execute();
+
+            return;
+        }
+
+        $oldaes = new FOFEncryptAes($oldsecret, 256);
+        $newaes = new FOFEncryptAes($newsecret, 256);
+
+        foreach($users as $user)
+        {
+            $update = (object) array(
+                'id'     => $user->id,
+                'otpKey' => '',
+                'otep'   => ''
+            );
+
+            list($method, $otpKey) = explode(':', $user->otpKey);
+            $update->otpKey = $oldaes->decryptString($otpKey);
+            $update->otpKey = $method.':'.$newaes->encryptString($update->otpKey);
+
+            $update->otep = $oldaes->decryptString($user->otep);
+            $update->otep = $newaes->encryptString($update->otep);
+
+            $db->updateObject('#__users', $update, 'id');
+        }
+    }
 
 	private function applySuperAdminChanges()
 	{
@@ -409,4 +517,22 @@ class AngieModelSetup extends AModel
 
 		return $makepass;
 	}
+
+    private function getDatabase()
+    {
+        $connectionVars = $this->getDbConnectionVars();
+        $name = $connectionVars->dbtype;
+        $options = array(
+            'database'	 => $connectionVars->dbname,
+            'select'	 => 1,
+            'host'		 => $connectionVars->dbhost,
+            'user'		 => $connectionVars->dbuser,
+            'password'	 => $connectionVars->dbpass,
+            'prefix'	 => $connectionVars->prefix,
+            //'port'				=> $connectionVars->dbport,
+        );
+        $db		 = ADatabaseFactory::getInstance()->getDriver($name, $options);
+
+        return $db;
+    }
 }

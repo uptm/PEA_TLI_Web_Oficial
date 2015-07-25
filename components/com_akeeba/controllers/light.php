@@ -12,7 +12,7 @@ defined('_JEXEC') or die();
 
 defined('AKEEBA_BACKUP_ORIGIN') or define('AKEEBA_BACKUP_ORIGIN','lite');
 
-class AkeebaControllerLight extends FOFController
+class AkeebaControllerLight extends F0FController
 {
 	public function __construct($config = array()) {
 		$config['csrf_protection'] = false;

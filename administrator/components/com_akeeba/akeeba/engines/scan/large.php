@@ -37,15 +37,17 @@ class AEScanLarge extends AEAbstractScan
 {
 	public function &getFiles($folder, &$position)
 	{
-		return $this->scanFolder($folder, $position, false, $threshold_key = 'file', $threshold_default = 100);
+		$result = $this->scanFolder($folder, $position, false, $threshold_key = 'file', $threshold_default = 100);
+		return $result;
 	}
 
 	public function &getFolders($folder, &$position)
 	{
-		return $this->scanFolder($folder, $position);
+		$result = $this->scanFolder($folder, $position);
+		return $result;
 	}
 
-	private function scanFolder($folder, &$position, $forFolders = true, $threshold_key = 'dir', $threshold_default = 50)
+	protected function scanFolder($folder, &$position, $forFolders = true, $threshold_key = 'dir', $threshold_default = 50)
 	{
 		$registry = AEFactory::getConfiguration();
 
@@ -58,7 +60,16 @@ class AEScanLarge extends AEAbstractScan
 			return $false;
 		}
 
-		$di = new DirectoryIterator($folder);
+		try
+		{
+			$di = new DirectoryIterator($folder);
+		}
+		catch (Exception $e)
+		{
+			$this->setWarning('Unreadable directory ' . $folder);
+
+			return $false;
+		}
 
 		if (!$di->valid())
 		{

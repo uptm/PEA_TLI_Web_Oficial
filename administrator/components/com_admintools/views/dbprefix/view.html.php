@@ -1,23 +1,22 @@
 <?php
 /**
- *  @package AdminTools
- *  @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
- *  @license GNU General Public License version 3, or later
- *  @version $Id$
+ * @package   AdminTools
+ * @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
+ * @license   GNU General Public License version 3, or later
  */
 
 // Protect from unauthorized access
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
-class AdmintoolsViewDbprefix extends FOFViewHtml
+class AdmintoolsViewDbprefix extends F0FViewHtml
 {
 	protected function onBrowse($tpl = null)
 	{
 		$model = $this->getModel();
-		$this->assign('isDefaultPrefix',		$model->isDefaultPrefix());
-		$this->assign('currentPrefix',			$model->getCurrentPrefix());
-		$this->assign('newPrefix',				$model->getRandomPrefix(4));
-		
+		$this->isDefaultPrefix = $model->isDefaultPrefix();
+		$this->currentPrefix = $model->getCurrentPrefix();
+		$this->newPrefix = $model->getRandomPrefix(4);
+
 		return true;
 	}
 }

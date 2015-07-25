@@ -76,8 +76,6 @@ class AECoreDomainInit extends AEAbstractPart
 
 		// Initialize counters
 		$registry = AEFactory::getConfiguration();
-		$registry->set('volatile.step_counter', 0);
-		$registry->set('volatile.operation_counter', 0);
 
 		if (!empty($jpskey))
 		{
@@ -92,29 +90,13 @@ class AECoreDomainInit extends AEAbstractPart
 		// Initialize temporary storage
 		AEUtilTempvars::reset();
 
-		// Force load the tag
+		// Force load the tag -- do not delete!
 		$kettenrad = AEFactory::getKettenrad();
 		$tag = $kettenrad->getTag();
 
 		// Push the comment and description in temp vars for use in the installer phase
 		$registry->set('volatile.core.description', $this->description);
 		$registry->set('volatile.core.comment', $this->comment);
-
-		// Apply the configuration overrides
-		$overrides = AEPlatform::getInstance()->configOverrides;
-
-		if (is_array($overrides) && @count($overrides))
-		{
-			$protected_keys = $registry->getProtectedKeys();
-			$registry->resetProtectedKeys();
-
-			foreach ($overrides as $k => $v)
-			{
-				$registry->set($k, $v);
-			}
-
-			$registry->setProtectedKeys($protected_keys);
-		}
 
 		$this->setState('prepared');
 	}
@@ -138,6 +120,9 @@ class AECoreDomainInit extends AEAbstractPart
 		{
 			$this->setState('running');
 		}
+
+		// Initialise the extra notes variable, used by platform classes to return warnings and errors
+		$extraNotes = null;
 
 		// Load the version defines
 		AEPlatform::getInstance()->load_version_defines();
@@ -214,8 +199,29 @@ class AECoreDomainInit extends AEAbstractPart
 				AEUtilLogger::WriteLog(_AE_LOG_INFO, "GZIP Compression   : n/a (no compression)");
 			}
 
-			AEPlatform::getInstance()->log_platform_special_directories();
+			$extraNotes = AEPlatform::getInstance()->log_platform_special_directories();
+
+			if (!empty($extraNotes) && is_array($extraNotes))
+			{
+				if (isset($extraNotes['warnings']) && is_array($extraNotes['warnings']))
+				{
+					foreach ($extraNotes['warnings'] as $warning)
+					{
+						$this->setWarning($warning);
+					}
+				}
+
+				if (isset($extraNotes['errors']) && is_array($extraNotes['errors']))
+				{
+					foreach ($extraNotes['errors'] as $error)
+					{
+						$this->setError($error);
+					}
+				}
+			}
+
 			AEUtilLogger::WriteLog(_AE_LOG_INFO, "Output directory   :" . $registry->get('akeeba.basic.output_directory'));
+			AEUtilLogger::WriteLog(_AE_LOG_INFO, "Part size (bytes)  :" . $registry->get('engine.archiver.common.part_size', 0));
 			AEUtilLogger::WriteLog(_AE_LOG_INFO, "--------------------------------------------------------------------------------");
 		}
 
@@ -235,9 +241,9 @@ class AECoreDomainInit extends AEAbstractPart
 			AEUtilLogger::WriteLog(_AE_LOG_INFO, "--------------------------------------------------------------------------------");
 		}
 
-		if (!version_compare(PHP_VERSION, '5.3.0', 'ge'))
+		if (!version_compare(PHP_VERSION, '5.3.4', 'ge'))
 		{
-			AEUtilLogger::WriteLog(_AE_LOG_WARNING, "You are using an outdated version of PHP. Akeeba Engine may not work properly. Please upgrade to PHP 5.3 or later.");
+			AEUtilLogger::WriteLog(_AE_LOG_WARNING, "You are using an outdated version of PHP. Akeeba Engine may not work properly. Please upgrade to PHP 5.3.4 or later.");
 		}
 
 		// Report profile ID
@@ -286,7 +292,8 @@ class AECoreDomainInit extends AEAbstractPart
 			'absolute_path' => $stat_absoluteArchiveName,
 			'multipart'     => 0,
 			'filesexist'    => 1,
-			'tag'           => $kettenrad->getTag()
+			'tag'           => $kettenrad->getTag(),
+			'backupid'		=> $kettenrad->getBackupId(),
 		);
 
 		// Save the entry

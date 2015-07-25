@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @version   $Id: RokSprocket_Layout_Mosaic.php 19460 2014-03-04 20:51:36Z btowles $
+ * @version   $Id: RokSprocket_Layout_Mosaic.php 21881 2014-07-09 22:43:31Z kevin $
  * @author    RocketTheme http://www.rockettheme.com
  * @copyright Copyright (C) 2007 - 2014 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
@@ -103,12 +103,14 @@ class RokSprocket_Layout_Mosaic extends RokSprocket_AbstractLayout
 	protected function cleanupTags($tags)
 	{
 		$outtags = array();
-		foreach ($tags as $tag) {
-			$cleanName     = trim($tag);
-			$key           = str_replace(' ', '-', str_replace(array("'", '"'), '', $cleanName));
-			$name          = $this->_camelize($cleanName, true, true);
-			$outtags[$key] = $name;
-		}
+		if (is_array($tags)) {
+            foreach ($tags as $tag) {
+                $cleanName     = trim($tag);
+                $key           = str_replace(' ', '-', str_replace(array("'", '"'), '', $cleanName));
+                $name          = $this->_camelize($cleanName, true, true);
+                $outtags[$key] = $name;
+            }
+        }
 		return $outtags;
 	}
 
@@ -186,8 +188,9 @@ function renderBody()
 public
 function renderInstanceHeaders()
 {
-	RokCommon_Header::addScript($this->theme_context->getUrl('mosaic.js'));
-	RokCommon_Header::addStyle($this->theme_context->getUrl('mosaic.css'));
+	$filename = ($this->theme == 'default' ? 'mosaic' : $this->theme);
+	RokCommon_Header::addStyle($this->theme_context->getUrl($filename . '.css'));
+	RokCommon_Header::addScript($this->theme_context->getUrl($filename . '.js'));
 
 	$items = $this->items->slice(0, $this->parameters->get('mosaic_items_per_page', 5));
 
@@ -235,8 +238,10 @@ function renderLayoutHeaders()
 	if (!self::$instanceHeadersRendered) {
 
 		$root_assets = RokCommon_Composite::get($this->basePackage . '.assets.js');
+		$layout_assets = RokCommon_Composite::get($this->layoutPackage . '.assets.js');
 		RokCommon_Header::addScript($root_assets->getUrl('moofx.js'));
 		RokCommon_Header::addScript($root_assets->getUrl('roksprocket.request.js'));
+		RokCommon_Header::addScript($layout_assets->getUrl('mosaic.js'));
 
 		$instance   = array();
 		$instance[] = "window.addEvent('domready', function(){";

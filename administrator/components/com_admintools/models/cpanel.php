@@ -1,13 +1,13 @@
 <?php
 /**
- *  @package AdminTools
- *  @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
- *  @license GNU General Public License version 3, or later
- *  @version $Id$
+ * @package   AdminTools
+ * @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
+ * @license   GNU General Public License version 3, or later
+ * @version   $Id$
  */
 
 // Protect from unauthorized access
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
 JLoader::import('joomla.application.component.model');
 
@@ -15,7 +15,7 @@ JLoader::import('joomla.application.component.model');
  * The Control Panel model
  *
  */
-class AdmintoolsModelCpanels extends FOFModel
+class AdmintoolsModelCpanels extends F0FModel
 {
 	/**
 	 * Constructor; dummy for now
@@ -28,20 +28,90 @@ class AdmintoolsModelCpanels extends FOFModel
 
 	public function getPluginID()
 	{
-		$db = $this->getDBO();
+		static $id = null;
 
-		$query = $db->getQuery(true)
-			->select($db->qn('extension_id'))
-			->from($db->qn('#__extensions'))
-			->where($db->qn('enabled').' >= '.$db->quote('1'))
-			->where($db->qn('folder').' = '.$db->quote('system'))
-			->where($db->qn('element').' = '.$db->quote('admintools'))
-			->where($db->qn('type').' = '.$db->quote('plugin'))
-			->order($db->qn('ordering').' ASC');
-		$db->setQuery( $query );
-		$id = $db->loadResult();
+		if (empty($id))
+		{
+			$db = $this->getDBO();
+
+			$query = $db->getQuery(true)
+				->select($db->qn('extension_id'))
+				->from($db->qn('#__extensions'))
+				->where($db->qn('enabled') . ' >= ' . $db->quote('1'))
+				->where($db->qn('folder') . ' = ' . $db->quote('system'))
+				->where($db->qn('element') . ' = ' . $db->quote('admintools'))
+				->where($db->qn('type') . ' = ' . $db->quote('plugin'))
+				->order($db->qn('ordering') . ' ASC');
+			$db->setQuery($query);
+			$id = $db->loadResult();
+		}
 
 		return $id;
+	}
+
+	/**
+	 * Makes sure our system plugin is really the very first system plugin to execute
+	 */
+	public function reorderPlugin()
+	{
+		// Get our plugin's ID
+		$id = $this->getPluginID();
+
+		// The plugin is not enabled, there's no point in continuing
+		if (!$id)
+		{
+			return;
+		}
+
+		// Get a list of ordering values per ID
+		$db = $this->getDbo();
+
+		$query = $db->getQuery(true)
+			->select(array(
+				$db->qn('extension_id'),
+				$db->qn('ordering'),
+			))
+			->from($db->qn('#__extensions'))
+			->where($db->qn('type') . ' = ' . $db->q('plugin'))
+			->where($db->qn('folder') . ' = ' . $db->q('system'))
+			->order($db->qn('ordering') . ' ASC');
+		$db->setQuery($query);
+		$orderingPerId = $db->loadAssocList('extension_id', 'ordering');
+
+		$orderings = array_values($orderingPerId);
+		$orderings = array_unique($orderings);
+		$minOrdering = reset($orderings);
+
+		$myOrdering = $orderingPerId[$id];
+
+		reset($orderings);
+		$sharedOrderings = 0;
+		foreach ($orderingPerId as $fooid => $order)
+		{
+			if ($order > $myOrdering)
+			{
+				break;
+			}
+
+			if ($order == $myOrdering)
+			{
+				$sharedOrderings++;
+			}
+		}
+
+		// Do I need to reorder the plugin?
+		if (($myOrdering > $minOrdering) || ($sharedOrderings > 1))
+		{
+			$query = $db->getQuery(true)
+				->update($db->qn('#__extensions'))
+				->set($db->qn('ordering') . ' = ' . $db->q($minOrdering - 1))
+				->where($db->qn('extension_id') . ' = ' . $db->q($id));
+			$db->setQuery($query);
+			$db->execute();
+
+			// Reset the Joomla! plugins cache
+			F0FUtilsCacheCleaner::clearPluginsCache();
+		}
 	}
 
 	/**
@@ -56,14 +126,17 @@ class AdmintoolsModelCpanels extends FOFModel
 		$query = $db->getQuery(true)
 			->select($db->qn('params'))
 			->from($db->qn('#__extensions'))
-			->where($db->qn('type').' = '.$db->quote('component'))
-			->where($db->qn('element').' = '.$db->quote('com_admintools'));
+			->where($db->qn('type') . ' = ' . $db->quote('component'))
+			->where($db->qn('element') . ' = ' . $db->quote('com_admintools'));
 		$db->setQuery($query);
 		$rawparams = $db->loadResult();
 		$cparams = new JRegistry();
-		if(version_compare(JVERSION, '3.0', 'ge')) {
+		if (version_compare(JVERSION, '3.0', 'ge'))
+		{
 			$cparams->loadString($rawparams, 'JSON');
-		} else {
+		}
+		else
+		{
 			$cparams->loadJSON($rawparams);
 		}
 
@@ -73,28 +146,46 @@ class AdmintoolsModelCpanels extends FOFModel
 			'downloadid', 'lastversion', 'minstability',
 			'scandiffs', 'scanemail', 'htmaker_folders_fix_at240',
 			'acceptlicense', 'acceptsupport', 'sitename',
-			'showstats',);
-		if(interface_exists('JModel')) {
-			$params = JModelLegacy::getInstance('Storage','AdmintoolsModel');
-		} else {
-			$params = JModel::getInstance('Storage','AdmintoolsModel');
+			'showstats', 'longconfigpage',
+			'autoupdateCli', 'notificationFreq', 'notificationTime', 'notificationEmail', 'usage'
+		);
+		if (interface_exists('JModel'))
+		{
+			$params = JModelLegacy::getInstance('Storage', 'AdmintoolsModel');
+		}
+		else
+		{
+			$params = JModel::getInstance('Storage', 'AdmintoolsModel');
 		}
 		$modified = 0;
-		foreach($allParams as $k => $v) {
-			if(in_array($k, $safeList)) continue;
-			if($v == '') continue;
+		foreach ($allParams as $k => $v)
+		{
+			if (in_array($k, $safeList))
+			{
+				continue;
+			}
+			if ($v == '')
+			{
+				continue;
+			}
 
 			$modified++;
 
-			if(version_compare(JVERSION, '3.0', 'ge')) {
+			if (version_compare(JVERSION, '3.0', 'ge'))
+			{
 				$cparams->set($k, null);
-			} else {
+			}
+			else
+			{
 				$cparams->setValue($k, null);
 			}
 			$params->setValue($k, $v);
 		}
 
-		if($modified == 0) return;
+		if ($modified == 0)
+		{
+			return;
+		}
 
 		// Save new parameters
 		$params->save();
@@ -105,9 +196,9 @@ class AdmintoolsModelCpanels extends FOFModel
 
 		$sql = $db->getQuery(true)
 			->update($db->qn('#__extensions'))
-			->set($db->qn('params').' = '.$db->q($data))
-			->where($db->qn('element').' = '.$db->q('com_admintools'))
-			->where($db->qn('type').' = '.$db->q('component'));
+			->set($db->qn('params') . ' = ' . $db->q($data))
+			->where($db->qn('element') . ' = ' . $db->q('com_admintools'))
+			->where($db->qn('type') . ' = ' . $db->q('component'));
 
 		$db->setQuery($sql);
 		$db->execute();
@@ -120,146 +211,29 @@ class AdmintoolsModelCpanels extends FOFModel
 		// Do I need a Download ID?
 		$ret = false;
 		$isPro = ADMINTOOLS_PRO;
-		if(!$isPro) {
+		if (!$isPro)
+		{
 			$ret = true;
-		} else {
+		}
+		else
+		{
 			$ret = false;
 			$params = JComponentHelper::getParams('com_admintools');
-			if(version_compare(JVERSION, '3.0', 'ge')) {
+			if (version_compare(JVERSION, '3.0', 'ge'))
+			{
 				$dlid = $params->get('downloadid', '');
-			} else {
+			}
+			else
+			{
 				$dlid = $params->getValue('downloadid', '');
 			}
-			if(!preg_match('/^([0-9]{1,}:)?[0-9a-f]{32}$/i', $dlid)) {
+			if (!preg_match('/^([0-9]{1,}:)?[0-9a-f]{32}$/i', $dlid))
+			{
 				$ret = true;
 			}
 		}
 
 		return $ret;
-	}
-
-	/**
-	 * Refreshes the Joomla! update sites for this extension as needed
-	 *
-	 * @return  void
-	 */
-	public function refreshUpdateSite()
-	{
-		$isPro = defined('ADMINTOOLS_PRO') ? ADMINTOOLS_PRO : 0;
-
-		JLoader::import('joomla.application.component.helper');
-		$params = JComponentHelper::getParams('com_admintools');
-
-		if(version_compare(JVERSION, '3.0', 'ge'))
-		{
-			$dlid = $params->get('downloadid', '');
-		}
-		else
-		{
-			$dlid = $params->getValue('downloadid', '');
-		}
-
-		$extra_query = null;
-
-		// If I have a valid Download ID I will need to use a non-blank extra_query in Joomla! 3.2+
-		if (preg_match('/^([0-9]{1,}:)?[0-9a-f]{32}$/i', $dlid))
-		{
-			// Even if the user entered a Download ID in the Core version. Let's switch his update channel to Professional
-			$isPro = true;
-
-			$extra_query = 'dlid=' . $dlid;
-		}
-
-		// Create the update site definition we want to store to the database
-		$update_site = array(
-			'name'		=> 'Admin Tools ' . ($isPro ? 'Professional' : 'Core'),
-			'type'		=> 'extension',
-			'location'	=> 'http://cdn.akeebabackup.com/updates/at' . ($isPro ? 'pro' : 'core') . '.xml',
-			'enabled'	=> 1,
-			'last_check_timestamp'	=> 0,
-			'extra_query'	=> $extra_query
-		);
-
-		if (version_compare(JVERSION, '3.0.0', 'lt'))
-		{
-			unset($update_site['extra_query']);
-		}
-
-		$db = $this->getDbo();
-
-		// Get the extension ID to ourselves
-		$query = $db->getQuery(true)
-			->select($db->qn('extension_id'))
-			->from($db->qn('#__extensions'))
-			->where($db->qn('type') . ' = ' . $db->q('component'))
-			->where($db->qn('element') . ' = ' . $db->q('com_admintools'));
-		$db->setQuery($query);
-
-		$extension_id = $db->loadResult();
-
-		if (empty($extension_id))
-		{
-			return;
-		}
-
-		// Get the update sites for our extension
-		$query = $db->getQuery(true)
-			->select($db->qn('update_site_id'))
-			->from($db->qn('#__update_sites_extensions'))
-			->where($db->qn('extension_id') . ' = ' . $db->q($extension_id));
-		$db->setQuery($query);
-
-		$updateSiteIDs = $db->loadColumn(0);
-
-		if (!count($updateSiteIDs))
-		{
-			// No update sites defined. Create a new one.
-			$newSite = (object)$update_site;
-			$db->insertObject('#__update_sites', $newSite);
-
-			$id = $db->insertid();
-
-			$updateSiteExtension = (object)array(
-				'update_site_id'	=> $id,
-				'extension_id'		=> $extension_id,
-			);
-			$db->insertObject('#__update_sites_extensions', $updateSiteExtension);
-		}
-		else
-		{
-			// Loop through all update sites
-			foreach ($updateSiteIDs as $id)
-			{
-				$query = $db->getQuery(true)
-					->select('*')
-					->from($db->qn('#__update_sites'))
-					->where($db->qn('update_site_id') . ' = ' . $db->q($id));
-				$db->setQuery($query);
-				$aSite = $db->loadObject();
-
-				// Does the name and location match?
-				if (($aSite->name == $update_site['name']) && ($aSite->location == $update_site['location']))
-				{
-					// Do we have the extra_query property (J 3.2+) and does it match?
-					if (property_exists($aSite, 'extra_query'))
-					{
-						if ($aSite->extra_query == $update_site['extra_query'])
-						{
-							continue;
-						}
-					}
-					else
-					{
-						// Joomla! 3.1 or earlier. Updates may or may not work.
-						continue;
-					}
-				}
-
-				$update_site['update_site_id'] = $id;
-				$newSite = (object)$update_site;
-				$db->updateObject('#__update_sites', $newSite, 'update_site_id', true);
-			}
-		}
 	}
 
 	/**
@@ -288,10 +262,10 @@ class AdmintoolsModelCpanels extends FOFModel
 		$query = $db->getQuery(true)
 			->select('*')
 			->from($db->qn('#__extensions'))
-			->where($db->qn('folder').' = '.$db->quote('installer'))
-			->where($db->qn('element').' = '.$db->quote('admintools'))
-			->where($db->qn('type').' = '.$db->quote('plugin'))
-			->order($db->qn('ordering').' ASC');
+			->where($db->qn('folder') . ' = ' . $db->quote('installer'))
+			->where($db->qn('element') . ' = ' . $db->quote('admintools'))
+			->where($db->qn('type') . ' = ' . $db->quote('plugin'))
+			->order($db->qn('ordering') . ' ASC');
 		$db->setQuery($query);
 		$plugin = $db->loadObject();
 
@@ -309,13 +283,17 @@ class AdmintoolsModelCpanels extends FOFModel
 
 		// Otherwise, try to enable it and report false (so the user knows what he did wrong)
 		$pluginObject = (object)array(
-			'extension_id'	=> $plugin->extension_id,
-			'enabled'		=> 1
+			'extension_id' => $plugin->extension_id,
+			'enabled'      => 1
 		);
 
 		try
 		{
 			$result = $db->updateObject('#__extensions', $pluginObject, 'extension_id');
+
+			// Reset the Joomla! plugins cache
+			F0FUtilsCacheCleaner::clearPluginsCache();
+
 			// Do not remove this line. We need to tell the user he's doing something wrong.
 			$result = false;
 		}
@@ -327,4 +305,95 @@ class AdmintoolsModelCpanels extends FOFModel
 		return $result;
 	}
 
+	/**
+	 * Checks the database for missing / outdated tables using the $dbChecks
+	 * data and runs the appropriate SQL scripts if necessary.
+	 *
+	 * @return AdmintoolsModelCpanels
+	 */
+	public function checkAndFixDatabase()
+	{
+		// Install or update database
+		$dbInstaller = new F0FDatabaseInstaller(array(
+			'dbinstaller_directory' => JPATH_ADMINISTRATOR . '/components/com_admintools/sql/xml'
+		));
+
+		$dbInstaller->updateSchema();
+
+        // Let's check and fix common tables, too
+        F0FModel::getTmpInstance('Stats', 'AdmintoolsModel')->checkAndFixCommonTables();
+
+		return $this;
+	}
+
+	/**
+	 * Returns true if we are installed in Joomla! 3.2 or later and we have post-installation messages for our component
+	 * which must be showed to the user.
+	 *
+	 * @return bool
+	 */
+	public function hasPostInstallMessages()
+	{
+		// Make sure we have Joomla! 3.2.0 or later
+		if (!version_compare(JVERSION, '3.2.0', 'ge'))
+		{
+			return false;
+		}
+
+		// Get the extension ID
+		// Get the extension ID for our component
+		$db = JFactory::getDbo();
+		$query = $db->getQuery(true);
+		$query->select('extension_id')
+			->from('#__extensions')
+			->where($db->qn('element') . ' = ' . $db->q('com_admintools'));
+		$db->setQuery($query);
+
+		try
+		{
+			$ids = $db->loadColumn();
+		}
+		catch (Exception $exc)
+		{
+			return false;
+		}
+
+		if (empty($ids))
+		{
+			return false;
+		}
+
+		$extension_id = array_shift($ids);
+
+		$this->setState('extension_id', $extension_id);
+
+		if (!defined('FOF_INCLUDED'))
+		{
+			include_once JPATH_SITE.'/libraries/fof/include.php';
+		}
+
+		if (!defined('FOF_INCLUDED'))
+		{
+			return false;
+		}
+
+		// Do I have messages?
+		$pimModel = FOFModel::getTmpInstance('Messages', 'PostinstallModel');
+		$pimModel->savestate(false);
+		$pimModel->setState('eid', $extension_id);
+
+		return (count($pimModel->getList()) >= 1);
+	}
+
+	/**
+	 * Perform a fast check of Admin Tools' files
+	 *
+	 * @return bool False if some of the files are missing or tampered with
+	 */
+	public function fastCheckFiles()
+	{
+		$checker = new F0FUtilsFilescheck('com_admintools', ADMINTOOLS_VERSION, ADMINTOOLS_DATE);
+
+		return $checker->fastCheck();
+	}
 }

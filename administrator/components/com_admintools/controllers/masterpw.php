@@ -1,23 +1,28 @@
 <?php
 /**
- *  @package AdminTools
- *  @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
- *  @license GNU General Public License version 3, or later
- *  @version $Id$
+ * @package   AdminTools
+ * @copyright Copyright (c)2010-2014 Nicholas K. Dionysopoulos
+ * @license   GNU General Public License version 3, or later
+ * @version   $Id$
  */
 
 // Protect from unauthorized access
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
-class AdmintoolsControllerMasterpw extends FOFController
+class AdmintoolsControllerMasterpw extends F0FController
 {
-	public function __construct($config = array()) {
+	public function __construct($config = array())
+	{
 		parent::__construct($config);
 		$this->modelName = 'masterpw';
 	}
 
-	public function execute($task) {
-		if($task != 'save') $task = 'browse';
+	public function execute($task)
+	{
+		if ($task != 'save')
+		{
+			$task = 'browse';
+		}
 		parent::execute($task);
 	}
 
@@ -26,13 +31,16 @@ class AdmintoolsControllerMasterpw extends FOFController
 		// CSRF prevention
 		$this->_csrfProtection();
 
-		$masterpw = $this->input->get('masterpw','', 'none', 2);
+		$masterpw = $this->input->get('masterpw', '', 'none', 2);
 		$views = $this->input->getVar('views', array(), 'array', 2);
 
 		$restrictedViews = array();
-		foreach($views as $view => $locked)
+		foreach ($views as $view => $locked)
 		{
-			if($locked == 1) $restrictedViews[] = $view;
+			if ($locked == 1)
+			{
+				$restrictedViews[] = $view;
+			}
 		}
 
 		$model = $this->getModel('Masterpw');
@@ -46,7 +54,8 @@ class AdmintoolsControllerMasterpw extends FOFController
 		return $this->checkACL('admintools.security');
 	}
 
-	protected function onBeforeSave() {
+	protected function onBeforeSave()
+	{
 		return $this->checkACL('admintools.security');
 	}
 }
